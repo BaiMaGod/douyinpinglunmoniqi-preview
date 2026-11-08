@@ -75,7 +75,7 @@
 .emoji-toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px}.emoji-toolbar span{font-size:10.5px;color:#9299a6}
 .emoji-picker-modal{position:fixed;inset:0;z-index:110;background:#171b2780;display:flex;align-items:center;justify-content:center;padding:18px}.emoji-picker-modal.hidden{display:none}
 .emoji-picker-dialog{width:min(760px,100%);max-height:min(760px,92vh);background:#fff;border-radius:17px;padding:18px;box-shadow:0 25px 90px #12172555;display:flex;flex-direction:column;gap:12px}
-.emoji-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:750;font-size:16px}.emoji-picker-head small{font-size:11px;color:#8b929e;font-weight:400;margin-left:8px}
+.emoji-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:750;font-size:16px}.emoji-picker-head small{font-size:11px;color:#8b929e;font-weight:400;margin-left:8px}.emoji-picker-head-actions{display:flex;align-items:center;gap:8px}
 .emoji-picker-close{border:0;border-radius:9px;width:32px;height:32px;background:#f3f4f6;color:#687080;font-size:20px}
 #emojiSearch{height:38px;border:1px solid #e2e5eb;border-radius:9px;padding:0 12px;width:100%;font-size:13px}
 .emoji-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;overflow:auto;min-height:180px;padding:2px}
@@ -180,7 +180,7 @@
 </div>
 <div class="emoji-picker-modal hidden" id="emojiPickerModal" role="dialog" aria-modal="true" aria-label="抖音表情库">
   <div class="emoji-picker-dialog">
-    <div class="emoji-picker-head"><div>抖音表情库 <small id="emojiPickerCount">正在加载…</small></div><button type="button" class="emoji-picker-close" id="closeEmojiPicker" aria-label="关闭">×</button></div>
+    <div class="emoji-picker-head"><div>抖音表情库 <small id="emojiPickerCount">正在加载…</small></div><div class="emoji-picker-head-actions"><button type="button" class="btn btn-mini" id="cacheAllDouyinEmojis">缓存全部到本机</button><button type="button" class="emoji-picker-close" id="closeEmojiPicker" aria-label="关闭">×</button></div></div>
     <input id="emojiSearch" type="search" placeholder="搜索表情名称，例如：流泪、抱抱你、心碎">
     <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
   </div>
@@ -620,6 +620,7 @@ $('#emojiPickerGrid').addEventListener('click',async e=>{const btn=e.target.clos
 $('#emojiPickerGrid').addEventListener('error',e=>{const img=e.target;if(img?.matches?.('img[data-fallback-src]')&&!img.dataset.fallbackTried){img.dataset.fallbackTried='1';img.src=img.dataset.fallbackSrc}},true);
 $('#emojiSearch').addEventListener('input',renderDouyinEmojiPicker);
 $('#closeEmojiPicker').addEventListener('click',closeEmojiPicker);
+$('#cacheAllDouyinEmojis').addEventListener('click',cacheAllDouyinEmojis);
 $('#emojiPickerModal').addEventListener('click',e=>{if(e.target===$('#emojiPickerModal'))closeEmojiPicker()});
 
 $('#avatarFolderButton').addEventListener('click',()=>$('#avatarFolderInput').click());
@@ -743,8 +744,27 @@ function renderDouyinEmojiPicker(){
   const grid=$('#emojiPickerGrid'),search=$('#emojiSearch');if(!grid)return;
   const query=(search?.value||'').trim().toLocaleLowerCase('zh-CN');
   const items=douyinStickerCatalog.filter(item=>!query||String(item.display_name||'').toLocaleLowerCase('zh-CN').includes(query)||String(item.show_name||'').toLocaleLowerCase('zh-CN').includes(query));
-  $('#emojiPickerCount').textContent='显示 '+items.length+' / '+douyinStickerCatalog.length+' 款';
+  $('#emojiPickerCount').textContent='显示 '+items.length+' / '+douyinStickerCatalog.length+' 款 · 本机已缓存 '+douyinEmojiRecordMap.size+' 款';
   grid.innerHTML=items.map(item=>{const token=item.display_name||'['+item.show_name+']';return '<button type="button" class="emoji-option" data-emoji-token="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'"><img loading="lazy" src="'+escapeHTML(douyinStickerImageUrl(item))+'" data-fallback-src="'+escapeHTML(DOUYIN_ASSET_RAW+'/static/'+encodeURIComponent(item.uri))+'" alt="'+escapeHTML(token)+'"><span>'+escapeHTML(stickerName(token))+'</span></button>'}).join('')||'<div class="emoji-empty">没有找到匹配的表情</div>';
+}
+async function cacheAllDouyinEmojis(){
+  if(state.busy)return;
+  if(!douyinStickerCatalog.length){notify('抖音表情目录尚未加载');return}
+  state.busy=true;const button=$('#cacheAllDouyinEmojis');if(button)button.disabled=true;
+  let ok=0;const failed=[];
+  try{
+    const items=douyinStickerCatalog;
+    for(let start=0;start<items.length;start+=8){
+      const batch=items.slice(start,start+8);
+      const results=await Promise.allSettled(batch.map(item=>ensureDouyinStickerLoaded(item.display_name||('['+item.show_name+']'))));
+      for(let i=0;i<results.length;i++){if(results[i].status==='fulfilled'&&results[i].value)ok++;else failed.push(batch[i].display_name||batch[i].uri)}
+      const status=$('#douyinEmojiStatus');if(status)status.textContent='正在缓存全部抖音表情：'+Math.min(start+batch.length,items.length)+' / '+items.length;
+      renderDouyinEmojiPicker();
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+    }
+    const status=$('#douyinEmojiStatus');if(status)status.textContent='表情缓存完成：'+ok+' / '+items.length+' 款成功'+(failed.length?'，失败 '+failed.length+' 款':'');
+    notify('抖音表情缓存完成：'+ok+' / '+items.length+' 款'+(failed.length?'，失败 '+failed.length+' 款':''));
+  }finally{state.busy=false;if(button)button.disabled=false;renderDouyinEmojiPicker()}
 }
 function openEmojiPicker(entryId){activeEmojiPickerEntryId=entryId;$('#emojiSearch').value='';renderDouyinEmojiPicker();$('#emojiPickerModal').classList.remove('hidden');$('#emojiSearch').focus()}
 function closeEmojiPicker(){$('#emojiPickerModal').classList.add('hidden');activeEmojiPickerEntryId=null}
