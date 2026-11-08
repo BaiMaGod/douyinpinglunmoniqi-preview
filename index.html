@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="color-scheme" content="light" />
-<title>抖音评论模拟器 v7.0 · 中国头像优先与全局唯一分配</title>
+<title>抖音评论模拟器 v8.0 · 内置抖音原版表情库</title>
 <style>
 :root{--bg:#f6f7fa;--paper:#fff;--ink:#20232b;--muted:#858d9a;--line:#e9ebf0;--pink:#e65b83;--pinkSoft:#fff0f4;--dark:#292c36;--radius:17px;--shadow:0 7px 28px rgba(33,38,59,.045)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--ink);font-size:14px}button,select,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f5aac1;outline-offset:2px}
@@ -72,6 +72,16 @@
 .source-tool-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .source-tool-row input{flex:1;min-width:220px;height:34px;border:1px solid #d9deea;border-radius:8px;padding:0 10px;font-size:12px;background:#fff}
 #douyinEmojiStatus{font-size:11px;color:#768196}
+.emoji-toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px}.emoji-toolbar span{font-size:10.5px;color:#9299a6}
+.emoji-picker-modal{position:fixed;inset:0;z-index:110;background:#171b2780;display:flex;align-items:center;justify-content:center;padding:18px}.emoji-picker-modal.hidden{display:none}
+.emoji-picker-dialog{width:min(760px,100%);max-height:min(760px,92vh);background:#fff;border-radius:17px;padding:18px;box-shadow:0 25px 90px #12172555;display:flex;flex-direction:column;gap:12px}
+.emoji-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:750;font-size:16px}.emoji-picker-head small{font-size:11px;color:#8b929e;font-weight:400;margin-left:8px}
+.emoji-picker-close{border:0;border-radius:9px;width:32px;height:32px;background:#f3f4f6;color:#687080;font-size:20px}
+#emojiSearch{height:38px;border:1px solid #e2e5eb;border-radius:9px;padding:0 12px;width:100%;font-size:13px}
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;overflow:auto;min-height:180px;padding:2px}
+.emoji-option{border:1px solid #eceef2;background:#fff;border-radius:10px;min-height:88px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#646c79;font-size:10.5px}
+.emoji-option:hover{border-color:#e9a4b8;background:#fff8fa}.emoji-option img{width:42px;height:42px;object-fit:contain}.emoji-option span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.emoji-empty{grid-column:1/-1;text-align:center;color:#939aa7;padding:30px}
 @media(min-width:980px){.source-tools{grid-template-columns:1.15fr 1fr}}
 </style>
 </head>
@@ -102,7 +112,7 @@
       <div class="form-group"><div class="field-label">评论表达风格</div><div class="segmented" id="toneButtons"><button type="button" data-tone="calm">克制</button><button type="button" data-tone="natural" class="active">自然</button><button type="button" data-tone="intense">强烈</button></div></div>
       <div class="form-group"><label class="field-label" for="emojiCount">追加贴纸表情数 <span class="field-value" id="emojiNumber">6</span></label><input class="range" id="emojiCount" type="range" min="0" max="40" value="6" /></div>
       <div class="form-group"><label class="field-label" for="photoFit">照片展示</label><select id="photoFit"><option value="cover">适度裁剪（参考截图）</option><option value="contain">完整显示（有留白）</option></select></div>
-      <div class="form-group"><label class="field-label" for="customTemplates">自定义评论补充库（可选）</label><textarea id="customTemplates" rows="3" placeholder="每行一句评论，支持用 {称呼} 自动替换亲属关系\n例如：博主，求你帮我把{称呼}的照片做成一段视频。"></textarea><div class="custom-hint">内置 2,500+ 个昵称；每种人物关系可组合出 7,000+ 条不同文案。系统会在未固定和已固定卡片之间检查重复。</div><div class="custom-hint">每行视为一条自定义模板；只在重新生成时随机抽选。默认贴纸仅为近似样式；导入你有权使用的抖音官方表情资源后，常用表情可按原始图片渲染。</div></div>
+      <div class="form-group"><label class="field-label" for="customTemplates">自定义评论补充库（可选）</label><textarea id="customTemplates" rows="3" placeholder="每行一句评论，支持用 {称呼} 自动替换亲属关系\n例如：博主，求你帮我把{称呼}的照片做成一段视频。"></textarea><div class="custom-hint">内置 2,500+ 个昵称；每种人物关系可组合出 7,000+ 条不同文案。系统会在未固定和已固定卡片之间检查重复。</div><div class="custom-hint">每行视为一条自定义模板；只在重新生成时随机抽选。已接入抖音表情图片库，评论预览与 PNG 导出使用表情原图；也可点击卡片下方按钮手动插入。</div></div>
       <div class="btn-row"><button class="btn btn-mini" id="rematch">全部重新配文</button><button class="btn btn-mini" id="resetNames">重设昵称</button></div>
     </section>
     <section class="side-card side-content">
@@ -146,13 +156,13 @@
           <small>需要免费的 Pexels API Key。密钥只保留在当前页面内存，不写入本地数据库。检索结果来自“中国人像”等关键词，因平台不提供身份/族裔认证，导入后请人工检查是否符合中国用户头像需求。<a href="https://www.pexels.com/api/" target="_blank" rel="noopener">获取 Pexels API Key</a> · <a href="https://www.pexels.com/" target="_blank" rel="noopener">Photos provided by Pexels</a></small>
         </section>
         <section class="source-tool">
-          <b>导入抖音官方表情素材</b>
+          <b>内置抖音表情库</b>
           <div class="source-tool-row">
-            <button type="button" class="btn btn-mini" id="douyinEmojiImportButton">导入 small_emoji_res 文件夹</button>
+            <span id="douyinEmojiStatus">正在加载抖音表情目录…</span>
+            <button type="button" class="btn btn-mini" id="douyinEmojiImportButton">补充本地表情素材</button>
             <input id="douyinEmojiFolderInput" type="file" accept="image/*,.json,application/json" webkitdirectory directory multiple hidden>
-            <span id="douyinEmojiStatus">尚未导入官方表情素材</span>
           </div>
-          <small>选择从你自己的抖音 Android 应用导出的 small_emoji_res 文件夹（需包含 info.json 和对应图片）。导入后会用官方图片替换常用哭泣、祈祷、爱心等表情；素材不随程序包分发。</small>
+          <small>已接入 436 款抖音 Android 表情资源，支持搜索和手动插入；常用表情会自动用于生成的评论。首次使用时按需缓存到本机，之后刷新可继续使用。也可导入你自己的 small_emoji_res 文件夹。</small>
         </section>
       </div>
       <span id="avatarLibraryCount">中国相关真人头像由 Pexels API 扩充 · 全部卡片头像全局不重复。</span>
@@ -166,6 +176,13 @@
       </div>
       <div class="avatar-source-note">中国相关摄影头像通过 Pexels API 获取，按平台要求提供 Pexels 与摄影师来源链接；备用头像来自 leonadler/inter-faces（CC0）。抖音官方表情图片需由你自行从已安装的抖音 App 导入，版权归抖音及相关权利方。</div>
     </div>
+  </div>
+</div>
+<div class="emoji-picker-modal hidden" id="emojiPickerModal" role="dialog" aria-modal="true" aria-label="抖音表情库">
+  <div class="emoji-picker-dialog">
+    <div class="emoji-picker-head"><div>抖音表情库 <small id="emojiPickerCount">正在加载…</small></div><button type="button" class="emoji-picker-close" id="closeEmojiPicker" aria-label="关闭">×</button></div>
+    <input id="emojiSearch" type="search" placeholder="搜索表情名称，例如：流泪、抱抱你、心碎">
+    <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
   </div>
 </div>
 <script>
@@ -454,7 +471,8 @@ const stickerSVG={
 };
 let stickerSrc=Object.fromEntries(Object.entries(stickerSVG).map(([k,v])=>[k,'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v)]));
 function graphemes(value){return typeof Intl.Segmenter==='function'?Array.from(new Intl.Segmenter('zh',{granularity:'grapheme'}).segment(String(value)),x=>x.segment):Array.from(String(value));}
-function renderCommentText(value){return graphemes(value).map(token=>stickerSrc[token]?`<img class="comment-emoji" src="${stickerSrc[token]}" alt="${token}">`:escapeHTML(token)).join('');}
+function commentTokens(value){const source=String(value),out=[],re=/\[[^\[\]\r\n]{1,28}\]/g;let last=0,m;while((m=re.exec(source))){out.push(...graphemes(source.slice(last,m.index)));out.push(m[0]);last=re.lastIndex;}out.push(...graphemes(source.slice(last)));return out;}
+function renderCommentText(value){return commentTokens(value).map(token=>stickerSrc[token]?'<img class="comment-emoji" src="'+escapeHTML(stickerSrc[token])+'" alt="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'">':escapeHTML(token)).join('');}
 
 function textWithEmoji(base,seed){const r=rng(seed+4071);let n=state.emojiCount;if(state.tone==='calm')n=Math.min(n,2);else if(state.tone==='natural')n=Math.min(n,12);const pool=['😭','😭','😭','🥹','😭','💔','🥺','🙏'];if(n===0)return base;const suffix=Array.from({length:n},()=>choice(pool,r)).join('');return base+(base.endsWith('。')?'':' ')+suffix}
 function getCustomTemplates(){return $('#customTemplates').value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,200)}
@@ -571,7 +589,7 @@ function updateStatus(){
 function previewSize(e){return e.aspect>1.22?[190,142]:[150,198]}
 function render(){updateStatus();const list=state.view==='fixed'?state.pinnedEntries:state.entries;if(!list.length){$('#cards').innerHTML='';$('#pager').classList.add('hidden');return}const totalPages=Math.ceil(list.length/state.perPage);state.page=Math.max(1,Math.min(state.page,totalPages));const first=(state.page-1)*state.perPage;const active=list.slice(first,first+state.perPage);$('#cards').innerHTML=active.map((e,k)=>state.view==='fixed'?renderPinnedCard(e,first+k):renderCard(e,first+k)).join('');$('#pager').classList.toggle('hidden',totalPages<2);$('#pageLabel').textContent=`第 ${state.page} / ${totalPages} 页`;$('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===totalPages;}
 function renderPinnedCard(e,index){return `<article class="editor-card" data-id="${escapeHTML(e.id)}"><div class="editor-top"><span class="card-index"># ${String(index+1).padStart(3,'0')}</span><span class="file-name" title="${escapeHTML(e.relativePath||e.fileName)}">${escapeHTML(e.fileName)}</span><span class="locked-pill">✓ 已固定</span></div><div class="pinned-preview"><img src="${e.pngUrl}" alt="已固定评论卡片"></div><div class="pinned-details"><div><b>评论昵称：</b>${escapeHTML(e.nickname)}</div><div><b>人物关系：</b>${escapeHTML(e.role)}　<b>头像：</b>${escapeHTML(e.avatarLabel||avatarName(e.avatarId))}</div><div><b>固定时间：</b>${new Date(e.pinnedAt||Date.now()).toLocaleString('zh-CN')}</div></div><div class="edit-panel"><div class="card-actions"><button class="btn btn-mini btn-primary" data-action="download-pinned">↓ 重新下载 PNG</button></div></div></article>`}
-function renderCard(e,index){const [w,h]=previewSize(e);const relationOptions=relationList.map(x=>`<option value="${x}"${x===e.role?' selected':''}>${x}</option>`).join('');const sourceLabel=e.roleSource==='文件夹'?'文件夹识别':e.roleSource==='文件名'?'文件名识别':e.roleSource==='手动'?'手动设置':'默认关系';return `<article class="editor-card" data-id="${escapeHTML(e.id)}"><div class="editor-top"><span class="card-index"># ${String(index+1).padStart(3,'0')}</span><span class="file-name" title="${escapeHTML(e.relativePath||e.file.name)}">${escapeHTML(e.file.name)}</span><span class="scene-label">未固定</span></div><div class="comment-preview"><img class="comment-avatar" data-avatar-id="${e.avatarId||''}" crossorigin="anonymous" referrerpolicy="no-referrer" src="${e.avatarId?avatarSrc(e.avatarId):''}" alt="评论头像"/><div class="comment-main"><div class="comment-name">${escapeHTML(e.nickname)}</div><div class="comment-text">${renderCommentText(e.text)}</div><img alt="${escapeHTML(e.file.name)}" src="${e.url}" class="attached-img ${state.fit==='contain'?'contain':''}" width="${w}" height="${h}" style="width:${w}px;height:${h}px" loading="lazy"></div></div><div class="edit-panel"><div class="avatar-edit-row"><img data-avatar-id="${e.avatarId||''}" crossorigin="anonymous" referrerpolicy="no-referrer" src="${e.avatarId?avatarSrc(e.avatarId):''}" alt="${escapeHTML(avatarName(e.avatarId))}"><div class="avatar-edit-meta"><b>${escapeHTML(e.avatarId?avatarName(e.avatarId):'头像待分配')}</b>当前评论头像 · 不与其他卡片重复</div><button class="btn btn-mini" data-action="avatar">更换头像</button></div><div class="edit-grid"><div><label class="field-label">评论昵称</label><input class="field-input" data-field="nickname" value="${escapeHTML(e.nickname)}" maxlength="35"></div><div><label class="field-label">人物关系 <small class="role-source">${sourceLabel}</small></label><select data-field="role">${relationOptions}</select></div></div><div class="form-group"><label class="field-label">评论内容（可直接修改）</label><textarea data-field="text" rows="3">${escapeHTML(e.text)}</textarea></div><div class="card-actions"><button class="btn btn-mini" data-action="regenerate">↻ 换一句</button><button class="btn btn-mini btn-primary" data-action="download">↓ 保存 PNG 并固定</button></div></div></article>`}
+function renderCard(e,index){const [w,h]=previewSize(e);const relationOptions=relationList.map(x=>`<option value="${x}"${x===e.role?' selected':''}>${x}</option>`).join('');const sourceLabel=e.roleSource==='文件夹'?'文件夹识别':e.roleSource==='文件名'?'文件名识别':e.roleSource==='手动'?'手动设置':'默认关系';return `<article class="editor-card" data-id="${escapeHTML(e.id)}"><div class="editor-top"><span class="card-index"># ${String(index+1).padStart(3,'0')}</span><span class="file-name" title="${escapeHTML(e.relativePath||e.file.name)}">${escapeHTML(e.file.name)}</span><span class="scene-label">未固定</span></div><div class="comment-preview"><img class="comment-avatar" data-avatar-id="${e.avatarId||''}" crossorigin="anonymous" referrerpolicy="no-referrer" src="${e.avatarId?avatarSrc(e.avatarId):''}" alt="评论头像"/><div class="comment-main"><div class="comment-name">${escapeHTML(e.nickname)}</div><div class="comment-text">${renderCommentText(e.text)}</div><img alt="${escapeHTML(e.file.name)}" src="${e.url}" class="attached-img ${state.fit==='contain'?'contain':''}" width="${w}" height="${h}" style="width:${w}px;height:${h}px" loading="lazy"></div></div><div class="edit-panel"><div class="avatar-edit-row"><img data-avatar-id="${e.avatarId||''}" crossorigin="anonymous" referrerpolicy="no-referrer" src="${e.avatarId?avatarSrc(e.avatarId):''}" alt="${escapeHTML(avatarName(e.avatarId))}"><div class="avatar-edit-meta"><b>${escapeHTML(e.avatarId?avatarName(e.avatarId):'头像待分配')}</b>当前评论头像 · 不与其他卡片重复</div><button class="btn btn-mini" data-action="avatar">更换头像</button></div><div class="edit-grid"><div><label class="field-label">评论昵称</label><input class="field-input" data-field="nickname" value="${escapeHTML(e.nickname)}" maxlength="35"></div><div><label class="field-label">人物关系 <small class="role-source">${sourceLabel}</small></label><select data-field="role">${relationOptions}</select></div></div><div class="form-group"><label class="field-label">评论内容（可直接修改）</label><textarea data-field="text" rows="3">${escapeHTML(e.text)}</textarea><div class="emoji-toolbar"><button class="btn btn-mini" type="button" data-action="emoji-picker">☻ 选择抖音表情</button><span>436 款表情可搜索插入；预览和 PNG 使用表情图片</span></div></div><div class="card-actions"><button class="btn btn-mini" data-action="regenerate">↻ 换一句</button><button class="btn btn-mini btn-primary" data-action="download">↓ 保存 PNG 并固定</button></div></div></article>`}
 
 function updateSinglePreview(e){const card=document.querySelector(`.editor-card[data-id="${e.id}"]`);if(!card)return;const [w,h]=previewSize(e);const image=card.querySelector('.attached-img');image.style.width=w+'px';image.style.height=h+'px';image.width=w;image.height=h}
 function notify(msg){$('#toast').textContent=msg;$('#toast').classList.remove('hidden');clearTimeout(notify.t);notify.t=setTimeout(()=>$('#toast').classList.add('hidden'),3400)}
@@ -590,7 +608,7 @@ $('#resetNames').addEventListener('click',()=>{if(!state.entries.length)return n
 $('#customTemplates').addEventListener('input',schedulePersist);
 $('#cards').addEventListener('input',e=>{const field=e.target.dataset.field;if(!['text','nickname'].includes(field))return;const card=e.target.closest('.editor-card');const entry=getEntryById(card.dataset.id);if(!entry||entry.pinned)return;entry[field]=e.target.value;if(field==='text')entry.edited=true;const target=card.querySelector(field==='text'?'.comment-text':'.comment-name');if(field==='text')target.innerHTML=renderCommentText(entry[field]);else target.textContent=entry[field];schedulePersist()});
 $('#cards').addEventListener('change',e=>{const card=e.target.closest('.editor-card');if(!card)return;const entry=getEntryById(card.dataset.id);if(!entry||entry.pinned)return;if(e.target.dataset.field==='role'){entry.role=e.target.value;entry.roleSource='手动';entry.edited=false;entry.text=generateText(entry);render();schedulePersist();return}if(e.target.dataset.field==='nickname'){const duplicate=allEntries().some(x=>String(x.id)!==String(entry.id)&&normalizedUniqueText(x.nickname)===normalizedUniqueText(entry.nickname));if(duplicate){entry.nickname=makeNickname(entry);e.target.value=entry.nickname;notify('昵称不能重复，已自动分配一个新昵称')}}if(e.target.dataset.field==='text'){const duplicate=allEntries().some(x=>String(x.id)!==String(entry.id)&&normalizedUniqueText(x.text)===normalizedUniqueText(entry.text));if(duplicate){entry.text=generateText(entry);e.target.value=entry.text;card.querySelector('.comment-text').innerHTML=renderCommentText(entry.text);notify('评论文案不能重复，已自动换成未使用文案')}}schedulePersist()});
-$('#cards').addEventListener('click',async e=>{const btn=e.target.closest('button[data-action]');if(!btn||state.busy)return;const entry=getEntryById(btn.closest('.editor-card').dataset.id);if(!entry)return;if(btn.dataset.action==='avatar'){if(!entry.pinned)openAvatarModal(entry.id);return}else if(btn.dataset.action==='download-pinned'){if(entry.pngBlob)downloadBlob(entry.pngBlob,`${safeFilename(entry.fileName.replace(/\.[^.]+$/,''))}_评论卡片.png`);return}else if(btn.dataset.action==='regenerate'){state.seed++;entry.edited=false;entry.text=generateText(entry);render();schedulePersist()}else if(btn.dataset.action==='download'){try{state.busy=true;btn.disabled=true;const blob=await renderPNG(entry);await pinEntries([entry],[blob]);downloadBlob(blob,`${safeFilename(entry.file.name.replace(/\.[^.]+$/,''))}_评论卡片.png`);render();notify('PNG 已保存，卡片和照片已固定')}catch(err){console.error(err);notify('固定失败：'+err.message)}finally{state.busy=false;btn.disabled=false}}});
+$('#cards').addEventListener('click',async e=>{const btn=e.target.closest('button[data-action]');if(!btn||state.busy)return;const entry=getEntryById(btn.closest('.editor-card').dataset.id);if(!entry)return;if(btn.dataset.action==='avatar'){if(!entry.pinned)openAvatarModal(entry.id);return}else if(btn.dataset.action==='emoji-picker'){if(!entry.pinned)openEmojiPicker(entry.id);return}else if(btn.dataset.action==='download-pinned'){if(entry.pngBlob)downloadBlob(entry.pngBlob,`${safeFilename(entry.fileName.replace(/\.[^.]+$/,''))}_评论卡片.png`);return}else if(btn.dataset.action==='regenerate'){state.seed++;entry.edited=false;entry.text=generateText(entry);render();schedulePersist()}else if(btn.dataset.action==='download'){try{state.busy=true;btn.disabled=true;const blob=await renderPNG(entry);await pinEntries([entry],[blob]);downloadBlob(blob,`${safeFilename(entry.file.name.replace(/\.[^.]+$/,''))}_评论卡片.png`);render();notify('PNG 已保存，卡片和照片已固定')}catch(err){console.error(err);notify('固定失败：'+err.message)}finally{state.busy=false;btn.disabled=false}}});
 document.addEventListener('load',e=>{const img=e.target;if(img?.matches?.('img[data-avatar-id]'))cacheAvatarImage(img.dataset.avatarId,img)},true);
 document.addEventListener('error',e=>{const img=e.target;if(img?.matches?.('img[data-avatar-id]'))cacheAvatarImage(img.dataset.avatarId,img)},true);
 document.querySelectorAll('.status-tab').forEach(btn=>btn.addEventListener('click',()=>{state.view=btn.dataset.view;state.page=1;render();schedulePersist()}));
@@ -598,6 +616,11 @@ $('#avatarUploadButton').addEventListener('click',()=>$('#avatarUploadInput').cl
 $('#fetchPexelsAvatars').addEventListener('click',fetchPexelsAvatarPool);
 $('#douyinEmojiImportButton').addEventListener('click',()=>$('#douyinEmojiFolderInput').click());
 $('#douyinEmojiFolderInput').addEventListener('change',async e=>{try{await importDouyinEmojiFiles(e.target.files)}catch(err){console.error(err);alert('导入抖音表情失败：'+err.message)}finally{e.target.value=''}});
+$('#emojiPickerGrid').addEventListener('click',async e=>{const btn=e.target.closest('button[data-emoji-token]');if(btn)await insertDouyinEmoji(btn.dataset.emojiToken)});
+$('#emojiPickerGrid').addEventListener('error',e=>{const img=e.target;if(img?.matches?.('img[data-fallback-src]')&&!img.dataset.fallbackTried){img.dataset.fallbackTried='1';img.src=img.dataset.fallbackSrc}},true);
+$('#emojiSearch').addEventListener('input',renderDouyinEmojiPicker);
+$('#closeEmojiPicker').addEventListener('click',closeEmojiPicker);
+$('#emojiPickerModal').addEventListener('click',e=>{if(e.target===$('#emojiPickerModal'))closeEmojiPicker()});
 
 $('#avatarFolderButton').addEventListener('click',()=>$('#avatarFolderInput').click());
 $('#avatarFolderInput').addEventListener('change',async e=>{const files=[...e.target.files].filter(f=>isImage(f));let added=0;for(const file of files){const fingerprint=await photoFingerprint(file);if(avatarDefs.some(d=>d.fingerprint===fingerprint))continue;const id='custom_'+makeId();const blob=file.slice(0,file.size,file.type);const src=URL.createObjectURL(blob);const def={id,name:file.name.replace(/\.[^.]+$/,'').slice(0,24)||'本地头像',category:'自定义',src,blob,fingerprint};avatarDefs.push(def);await dbPut('customAvatars',{id,name:def.name,blob,fingerprint});added++;}e.target.value='';await assignMissingAvatars();renderAvatarModal();renderAvatarLibraryPreview();render();schedulePersist();notify(`从文件夹导入 ${added} 款头像，已保存到本机`)});
@@ -607,12 +630,12 @@ $('#prevPage').addEventListener('click',()=>{state.page--;render();schedulePersi
 function safeFilename(str){return String(str).replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,85)||'photo'}
 function downloadBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)}
 
-function wrapComment(ctx,text,maxWidth,fontSize){const lines=[];for(const paragraph of String(text).split('\n')){let line=[],lineWidth=0;for(const token of graphemes(paragraph)){const width=stickerSrc[token]?fontSize*1.2:ctx.measureText(token).width;if(line.length&&lineWidth+width>maxWidth){lines.push(line);line=[];lineWidth=0;}line.push(token);lineWidth+=width;}lines.push(line);}return lines;}
+function wrapComment(ctx,text,maxWidth,fontSize){const lines=[];for(const paragraph of String(text).split('\n')){let line=[],lineWidth=0;for(const token of commentTokens(paragraph)){const width=(stickerSrc[token]||/^\[[^\]]+\]$/.test(token))?fontSize*1.2:ctx.measureText(token).width;if(line.length&&lineWidth+width>maxWidth){lines.push(line);line=[];lineWidth=0;}line.push(token);lineWidth+=width;}lines.push(line);}return lines;}
 function imageSize(e){return previewSize(e)}
 function drawRoundedRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.closePath()}
 async function loadForCanvas(entry){const img=new Image();img.src=entry.url;await img.decode();return img}
 const canvasAvatarCache=new Map();async function loadAvatarForCanvas(entry){const id=entry.avatarId;if(!id)throw new Error('当前卡片没有可用头像，请先分配头像');if(canvasAvatarCache.has(id))return canvasAvatarCache.get(id);const blob=await getAvatarBlob(id);let src=avatarObjectUrls.get(id);if(!src){src=URL.createObjectURL(blob);avatarObjectUrls.set(id,src)}const img=new Image();img.src=src;await img.decode();canvasAvatarCache.set(id,img);return img}
-const canvasStickerCache=new Map();async function loadStickerForCanvas(token){if(canvasStickerCache.has(token))return canvasStickerCache.get(token);const img=new Image();img.src=stickerSrc[token];await img.decode();canvasStickerCache.set(token,img);return img}
+const canvasStickerCache=new Map();async function loadStickerForCanvas(token){if(canvasStickerCache.has(token))return canvasStickerCache.get(token);const src=await ensureDouyinStickerLoaded(token);if(!src)throw new Error('表情素材未加载：'+token);const img=new Image();img.src=src;await img.decode();canvasStickerCache.set(token,img);return img}
 async function renderPNG(entry){
   const width=424,scale=4,x=58,textWidth=width-x-16,ptop=13,bodyTop=36,lh=23,fontSize=15.5;
   const measure=document.createElement('canvas').getContext('2d');measure.font=`${fontSize}px "PingFang SC","Microsoft YaHei",sans-serif`;
@@ -634,10 +657,107 @@ async function renderPNG(entry){
 class ZipWriter{constructor(){this.body=[];this.central=[];this.offset=0;this.count=0;this.enc=new TextEncoder()}static crcTable=(()=>{let arr=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;arr[n]=c>>>0}return arr})();static crc32(a){let c=0xffffffff;for(let i=0;i<a.length;i++)c=ZipWriter.crcTable[(c^a[i])&255]^(c>>>8);return (c^0xffffffff)>>>0}add(name,blob,bytes){const fileName=this.enc.encode(name);const crc=ZipWriter.crc32(bytes);const size=bytes.length;const flags=0x0800;const local=new Uint8Array(30);let dv=new DataView(local.buffer);dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,flags,true);dv.setUint16(8,0,true);dv.setUint32(14,crc,true);dv.setUint32(18,size,true);dv.setUint32(22,size,true);dv.setUint16(26,fileName.length,true);this.body.push(local,fileName,blob);const central=new Uint8Array(46);dv=new DataView(central.buffer);dv.setUint32(0,0x02014b50,true);dv.setUint16(4,20,true);dv.setUint16(6,20,true);dv.setUint16(8,flags,true);dv.setUint16(10,0,true);dv.setUint32(16,crc,true);dv.setUint32(20,size,true);dv.setUint32(24,size,true);dv.setUint16(28,fileName.length,true);dv.setUint32(42,this.offset,true);this.central.push(central,fileName);this.offset+=30+fileName.length+size;this.count++}finish(){if(this.count>65535)throw new Error('ZIP 内文件数量超过格式限制');const centralSize=this.central.reduce((t,a)=>t+a.length,0);const end=new Uint8Array(22);const dv=new DataView(end.buffer);dv.setUint32(0,0x06054b50,true);dv.setUint16(8,this.count,true);dv.setUint16(10,this.count,true);dv.setUint32(12,centralSize,true);dv.setUint32(16,this.offset,true);return new Blob([...this.body,...this.central,end],{type:'application/zip'})}}
 const PEXELS_AVATAR_QUERIES=['Chinese portrait','Chinese woman portrait','Chinese man portrait','Chinese elderly portrait','Chinese senior portrait','Chinese student portrait','Chinese family portrait','Chinese people close up','Chinese grandparents portrait'];
 async function fetchPexelsAvatarPool(){const apiKey=$('#pexelsApiKey').value.trim();if(!apiKey){alert('请先在这里粘贴 Pexels API Key。密钥不会保存到网页或本地数据库。');return 0}if(!navigator.onLine){alert('当前处于离线状态，无法从 Pexels 获取头像。');return 0}state.busy=true;const existing=new Set(avatarDefs.filter(d=>d.id.startsWith('pexels-')).map(d=>d.id));const additions=[];let requests=0;try{const target=1000;setProgress('正在从 Pexels 搜索中国相关真人头像',0,target);for(const query of PEXELS_AVATAR_QUERIES){for(let page=1;page<=12&&additions.length<target;page++){const params=new URLSearchParams({query,locale:'zh-CN',orientation:'square',per_page:'80',page:String(page)});const response=await fetch('https://api.pexels.com/v1/search?'+params.toString(),{headers:{Authorization:apiKey}});requests++;if(response.status===401||response.status===403)throw new Error('Pexels API Key 无效或未获授权，请重新检查密钥');if(response.status===429)throw new Error('Pexels API 请求达到速率限制，请稍后继续');if(!response.ok)throw new Error(`Pexels API 请求失败：HTTP ${response.status}`);const data=await response.json();for(const photo of data.photos||[]){const id=`pexels-${photo.id}`;if(existing.has(id))continue;existing.add(id);const idx=avatarDefs.filter(d=>d.id.startsWith('pexels-')).length+additions.length+1;additions.push({id,name:`Pexels中国相关头像 ${String(idx).padStart(4,'0')}`,category:'中国真人',src:photo.src?.medium||photo.src?.small||photo.src?.large,fallbackSrc:photo.src?.small||photo.src?.medium,source:`Pexels · ${photo.photographer||'摄影师'}`,sourcePage:photo.url,photographer:photo.photographer||'',photographerUrl:photo.photographer_url||'https://www.pexels.com/',pexels:true,alt:photo.alt||'',reviewStatus:'关键词检索，待人工核验'});if(additions.length>=target)break}setProgress(`已检索 ${requests} 次 · 获得 ${additions.length}/${target} 款新头像`,Math.min(additions.length,target),target);if(!data.next_page||!(data.photos||[]).length)break;await new Promise(resolve=>setTimeout(resolve,80))}if(additions.length>=target)break}if(additions.length){avatarDefs.push(...additions);await dbPutMany('avatarManifest',additions.map(def=>({id:def.id,provider:'pexels',def})));await assignMissingAvatars();renderAvatarModal();renderAvatarLibraryPreview();render();await persistLocalState()}const total=avatarDefs.filter(d=>d.category==='中国真人').length;const message=`Pexels 新增 ${additions.length} 款；中国相关真人头像库现有 ${total} 款（其中搜索结果需人工核验）。共使用 ${requests} 次 API 请求。`;notify(message);if(additions.length<target)alert(message+'\n本次没有伪造或重复填充数量；可以再次点击继续补充。');return additions.length}catch(err){console.error(err);alert('获取头像失败：'+err.message+'\n如果你是双击 HTML 打开的，遇到浏览器跨域限制时，请通过本地 HTTP 服务打开页面后重试。');return 0}finally{$('#progressMask').classList.add('hidden');state.busy=false}}
-const DOUYIN_TOKEN_ALIASES={'😭':['流泪','哭哭','泣不成声'],'🥹':['泣不成声','抱抱你','可怜'],'🥺':['可怜','戳手手','抱抱你'],'🙏':['祈祷','感谢','双手合十'],'💔':['心碎','心碎了'],'😢':['流泪','哭哭'],'😔':['难过','抱抱你'],'❤️':['爱心','爱心手'],'🥰':['爱慕','色','比心']};
-const douyinEmojiObjectUrls=new Map();
-function stickerName(value){return String(value||'').replace(/^\\[|\\]$/g,'').trim()}
-function applyDouyinEmojiRecords(records){for(const rec of records||[]){if(!rec?.blob)continue;let url=douyinEmojiObjectUrls.get(rec.id);if(!url){url=URL.createObjectURL(rec.blob);douyinEmojiObjectUrls.set(rec.id,url)}rec.objectUrl=url}for(const [token,aliases] of Object.entries(DOUYIN_TOKEN_ALIASES)){const found=(records||[]).find(rec=>aliases.some(alias=>stickerName(rec.displayName)===alias||String(rec.showName||'')===alias));if(found?.objectUrl)stickerSrc[token]=found.objectUrl}if(typeof canvasStickerCache!=='undefined')canvasStickerCache.clear();const status=$('#douyinEmojiStatus');if(status){const n=(records||[]).length;status.textContent=n?`已导入 ${n} 款抖音表情，常用表情已替换`:'尚未导入官方表情素材'}}
+const DOUYIN_TOKEN_ALIASES={'😭':['流泪','哭哭','泣不成声'],'🥹':['泣不成声','抱抱你','可怜'],'🥺':['可怜','戳手手','抱抱你'],'🙏':['感谢','祈祷','双手合十'],'💔':['心碎','伤心'],'😢':['流泪','哭哭'],'😔':['难过','抱抱你'],'❤️':['爱心','爱心手'],'🥰':['爱慕','色','比心']};
+const DOUYIN_ASSET_CDN='https://cdn.jsdelivr.net/gh/hnlyzxf/douyin-emoji@main';
+const DOUYIN_ASSET_RAW='https://raw.githubusercontent.com/hnlyzxf/douyin-emoji/main';
+let douyinStickerCatalog=[];
+const douyinEmojiObjectUrls=new Map(),douyinEmojiRecordMap=new Map(),douyinEmojiLoadPromises=new Map(),douyinOfficialTokens=new Set();
+let activeEmojiPickerEntryId=null;
+function stickerName(value){return String(value||'').replace(/^\[|\]$/g,'').trim()}
+function douyinTokenForRecord(rec){const name=String(rec.displayName||rec.showName||rec.uri||'').trim();return name.startsWith('[')?name:'['+name+']'}
+function douyinStickerImageUrl(item,root=DOUYIN_ASSET_CDN){return root+'/static/'+encodeURIComponent(item.uri)}
+function applyDouyinEmojiRecords(records){
+  for(const rec of records||[]){
+    if(!rec?.blob)continue;
+    let url=douyinEmojiObjectUrls.get(rec.id);
+    if(!url){url=URL.createObjectURL(rec.blob);douyinEmojiObjectUrls.set(rec.id,url)}
+    rec.objectUrl=url;douyinEmojiRecordMap.set(rec.id,rec);
+    const token=douyinTokenForRecord(rec);if(token){stickerSrc[token]=url;douyinOfficialTokens.add(token)}
+  }
+  const all=[...douyinEmojiRecordMap.values()];
+  for(const [token,aliases] of Object.entries(DOUYIN_TOKEN_ALIASES)){
+    let found=all.find(rec=>aliases.some(alias=>stickerName(rec.displayName)===alias));
+    if(!found)found=all.find(rec=>aliases.includes(String(rec.showName||'')));
+    if(found?.objectUrl){stickerSrc[token]=found.objectUrl;douyinOfficialTokens.add(token)}
+  }
+  if(typeof canvasStickerCache!=='undefined')canvasStickerCache.clear();
+  const status=$('#douyinEmojiStatus');
+  if(status&&douyinStickerCatalog.length)status.textContent='已加载 '+douyinStickerCatalog.length+' 款抖音表情目录（图片按需缓存）';
+}
+function findDouyinSticker(token){
+  if(String(token).startsWith('['))return douyinStickerCatalog.find(item=>String(item.display_name||'')===token)||null;
+  const aliases=DOUYIN_TOKEN_ALIASES[token]||[];
+  for(const alias of aliases){const exact=douyinStickerCatalog.find(item=>stickerName(item.display_name)===alias&&!item.hide);if(exact)return exact}
+  for(const alias of aliases){const visible=douyinStickerCatalog.find(item=>String(item.show_name||'')===alias&&!item.hide);if(visible)return visible}
+  for(const alias of aliases){const any=douyinStickerCatalog.find(item=>stickerName(item.display_name)===alias||String(item.show_name||'')===alias);if(any)return any}
+  return null;
+}
+async function ensureDouyinStickerLoaded(token){
+  const current=stickerSrc[token];
+  if(current&&(current.startsWith('blob:')||douyinOfficialTokens.has(token)))return current;
+  const item=findDouyinSticker(token);
+  if(!item)return current||null;
+  const id='douyin-'+String(item.uri).toLowerCase();
+  if(douyinEmojiLoadPromises.has(id))return douyinEmojiLoadPromises.get(id);
+  const task=(async()=>{
+    const cached=await dbGet('douyinEmojiBlobs',id);
+    if(cached?.blob){applyDouyinEmojiRecords([cached]);return stickerSrc[token]||stickerSrc[douyinTokenForRecord(cached)]||null}
+    let lastError=null;
+    for(const root of [DOUYIN_ASSET_CDN,DOUYIN_ASSET_RAW]){
+      try{
+        const response=await fetch(douyinStickerImageUrl(item,root),{mode:'cors',cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const blob=await response.blob();if(!blob.size)throw new Error('图片文件为空');
+        const rec={id,blob,uri:item.uri,displayName:item.display_name||item.show_name||item.uri,showName:item.show_name||'',hide:!!item.hide,importedAt:Date.now(),source:root};
+        await dbPut('douyinEmojiBlobs',rec);applyDouyinEmojiRecords([rec]);
+        return stickerSrc[token]||stickerSrc[douyinTokenForRecord(rec)]||null;
+      }catch(err){lastError=err}
+    }
+    if(current&&!String(token).startsWith('['))return current;
+    throw new Error('抖音表情下载失败：'+(lastError?.message||'网络不可用'));
+  })();
+  douyinEmojiLoadPromises.set(id,task);
+  try{return await task}finally{douyinEmojiLoadPromises.delete(id)}
+}
+async function loadBuiltinDouyinEmojiCatalog(){
+  const cached=await dbGetAll('douyinEmojiBlobs');applyDouyinEmojiRecords(cached);
+  let lastError=null;
+  for(const url of [DOUYIN_ASSET_CDN+'/info.json',DOUYIN_ASSET_RAW+'/info.json']){
+    try{
+      const response=await fetch(url,{mode:'cors',cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const data=await response.json();if(!Array.isArray(data.stickers))throw new Error('表情目录格式不正确');
+      douyinStickerCatalog=data.stickers;
+      const status=$('#douyinEmojiStatus');if(status)status.textContent='已加载 '+douyinStickerCatalog.length+' 款抖音表情目录，常用表情正在缓存…';
+      const preload=['[流泪]','[哭哭]','[泣不成声]','[可怜]','[感谢]','[心碎]','[抱抱你]','[爱心]','[眼含热泪]','[难过]','[大哭]','[快哭了]','[戳手手]','[玫瑰]'];
+      await Promise.allSettled(preload.map(token=>ensureDouyinStickerLoaded(token)));
+      const finalStatus=$('#douyinEmojiStatus');if(finalStatus)finalStatus.textContent='已接入 '+douyinStickerCatalog.length+' 款抖音表情（默认可见 '+douyinStickerCatalog.filter(x=>!x.hide).length+' 款），常用表情已缓存到本机';
+      return douyinStickerCatalog.length;
+    }catch(err){lastError=err}
+  }
+  const status=$('#douyinEmojiStatus');if(status)status.textContent='在线表情目录暂时无法连接，可导入本地 small_emoji_res 文件夹';
+  console.warn('加载抖音表情目录失败',lastError);return 0;
+}
+function renderDouyinEmojiPicker(){
+  const grid=$('#emojiPickerGrid'),search=$('#emojiSearch');if(!grid)return;
+  const query=(search?.value||'').trim().toLocaleLowerCase('zh-CN');
+  const items=douyinStickerCatalog.filter(item=>!query||String(item.display_name||'').toLocaleLowerCase('zh-CN').includes(query)||String(item.show_name||'').toLocaleLowerCase('zh-CN').includes(query));
+  $('#emojiPickerCount').textContent='显示 '+items.length+' / '+douyinStickerCatalog.length+' 款';
+  grid.innerHTML=items.map(item=>{const token=item.display_name||'['+item.show_name+']';return '<button type="button" class="emoji-option" data-emoji-token="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'"><img loading="lazy" src="'+escapeHTML(douyinStickerImageUrl(item))+'" data-fallback-src="'+escapeHTML(DOUYIN_ASSET_RAW+'/static/'+encodeURIComponent(item.uri))+'" alt="'+escapeHTML(token)+'"><span>'+escapeHTML(stickerName(token))+'</span></button>'}).join('')||'<div class="emoji-empty">没有找到匹配的表情</div>';
+}
+function openEmojiPicker(entryId){activeEmojiPickerEntryId=entryId;$('#emojiSearch').value='';renderDouyinEmojiPicker();$('#emojiPickerModal').classList.remove('hidden');$('#emojiSearch').focus()}
+function closeEmojiPicker(){$('#emojiPickerModal').classList.add('hidden');activeEmojiPickerEntryId=null}
+async function insertDouyinEmoji(token){
+  const entry=getEntryById(activeEmojiPickerEntryId);if(!entry||entry.pinned)return;
+  try{await ensureDouyinStickerLoaded(token)}catch(err){notify(err.message);return}
+  const card=[...document.querySelectorAll('.editor-card')].find(node=>node.dataset.id===String(entry.id));
+  const textarea=card?.querySelector('textarea[data-field="text"]');
+  const current=entry.text||'',start=textarea?textarea.selectionStart:current.length,end=textarea?textarea.selectionEnd:start;
+  const next=current.slice(0,start)+token+current.slice(end);entry.text=next;entry.edited=true;
+  if(textarea){textarea.value=next;textarea.focus();const caret=start+token.length;textarea.setSelectionRange(caret,caret)}
+  const preview=card?.querySelector('.comment-text');if(preview)preview.innerHTML=renderCommentText(next);
+  schedulePersist();
+}
 async function importDouyinEmojiFiles(fileList){const files=Array.from(fileList||[]);const jsonFiles=files.filter(f=>f.name.toLowerCase()==='info.json');if(!jsonFiles.length){alert('没有找到 info.json。请选择包含 info.json 和表情图片的 small_emoji_res 文件夹。');return 0}let chosenInfo=null,chosenData=null;for(const file of jsonFiles){try{const data=JSON.parse(await file.text());if(Array.isArray(data.stickers)&&(!chosenData||data.stickers.length>chosenData.stickers.length)){chosenInfo=file;chosenData=data}}catch{}}if(!chosenData){alert('info.json 读取失败或缺少 stickers 列表。');return 0}const byName=new Map();for(const file of files){if(!file.type.startsWith('image/')&&!/\\.(png|jpe?g|webp|gif)$/i.test(file.name))continue;const key=file.name.toLowerCase();if(!byName.has(key))byName.set(key,[]);byName.get(key).push(file)}const records=[],seen=new Set();for(const sticker of chosenData.stickers){const uri=String(sticker.uri||'').split('/').pop();if(!uri||seen.has(uri.toLowerCase()))continue;const matches=byName.get(uri.toLowerCase());if(!matches?.length)continue;const file=matches[0],id='douyin-'+uri.toLowerCase();const rec={id,blob:file.slice(0,file.size,file.type||'image/png'),uri,displayName:sticker.display_name||sticker.show_name||uri,showName:sticker.show_name||'',hide:!!sticker.hide,importedAt:Date.now()};records.push(rec);seen.add(uri.toLowerCase())}if(!records.length){alert('找到了 info.json，但没有匹配到表情图片。请确认所选文件夹同时包含 static 图片资源。');return 0}await dbPutMany('douyinEmojiBlobs',records);const all=await dbGetAll('douyinEmojiBlobs');applyDouyinEmojiRecords(all);render();notify(`已导入 ${records.length} 款抖音表情，常用哭泣/祈祷/爱心表情将使用官方素材`);return records.length}
 async function cacheChineseAvatars(){if(state.busy)return;const items=avatarDefs.filter(d=>d.category==='中国真人');if(!items.length)return notify('中国头像库为空');state.busy=true;let ok=0,failed=[];try{setProgress(`正在缓存${items.length}款中国真人头像`,0,items.length);for(let start=0;start<items.length;start+=5){const batch=items.slice(start,start+5);const results=await Promise.allSettled(batch.map(d=>getAvatarBlob(d.id)));for(let i=0;i<results.length;i++){if(results[i].status==='fulfilled')ok++;else failed.push(batch[i].name)}setProgress(`正在缓存${items.length}款中国真人头像`,Math.min(start+batch.length,items.length),items.length);await new Promise(resolve=>requestAnimationFrame(resolve))}renderAvatarLibraryPreview();notify(`中国真人头像缓存完成：${ok}/${items.length}${failed.length?'，失败 '+failed.length+' 款':''}`);if(failed.length)alert('以下头像暂时无法下载，请检查网络后重试：\n'+failed.join('、'))}finally{$('#progressMask').classList.add('hidden');state.busy=false}}
 async function downloadAvatarPack(){if(state.busy)return;const defaults=avatarDefs.filter(d=>d.id.startsWith('cc0-'));if(!defaults.length)return notify('没有可下载的预设头像');state.busy=true;const zip=new ZipWriter();try{setProgress('正在下载并缓存100款CC0备用头像',0,defaults.length);let done=0;for(let start=0;start<defaults.length;start+=6){const batch=defaults.slice(start,start+6);const blobs=await Promise.all(batch.map(d=>getAvatarBlob(d.id)));for(let j=0;j<batch.length;j++){const index=start+j,blob=blobs[j];zip.add(`avatars/${String(index+1).padStart(3,'0')}.jpg`,blob,new Uint8Array(await blob.arrayBuffer()))}done+=batch.length;setProgress('正在下载并缓存100款CC0备用头像',done,defaults.length);await new Promise(resolve=>requestAnimationFrame(resolve))}const license='头像素材：inter-faces / leonadler\n来源：https://github.com/leonadler/royalty-free-user-avatars\n图片授权：Creative Commons Zero (CC0)，依原项目说明可自由使用、修改和再分发。\n原始摄影师及图片来源列表见原项目 CREDITS.md。\n';const lb=new Blob([license],{type:'text/plain;charset=utf-8'});zip.add('LICENSE-AVATARS.txt',lb,new Uint8Array(await lb.arrayBuffer()));downloadBlob(zip.finish(),'CC0真人头像素材包_100张.zip');notify('100款CC0备用头像已下载并缓存，本机离线可用')}catch(err){console.error(err);alert('头像素材下载失败：'+err.message+'\n可以下载原始素材包后解压，再通过“导入头像文件夹”导入。')}finally{$('#progressMask').classList.add('hidden');state.busy=false}}
@@ -653,10 +773,10 @@ $('#avatarGrid').addEventListener('click',async e=>{const b=e.target.closest('bu
 $('#closeAvatarModal').addEventListener('click',closeAvatarModal);$('#cancelAvatarModal').addEventListener('click',closeAvatarModal);
 $('#avatarRandomAction').addEventListener('click',async()=>{if(state.avatarModalTargetId!==null){const target=state.entries.find(e=>String(e.id)===String(state.avatarModalTargetId));const used=new Set(allEntries().filter(x=>!target||String(x.id)!==String(target.id)).map(x=>x.avatarId).filter(Boolean));const pool=shuffledAvatarIds(state.avatarSeed+Math.floor(Math.random()*10000));for(const id of pool){if(used.has(id))continue;try{if(await avatarLooksDuplicate(id,used))continue;await applyAvatarSelection(id);return}catch{}}notify('没有找到可用且不重复的头像，请导入更多中国真人头像')}else{state.defaultAvatarId=null;closeAvatarModal();notify('已恢复自动分配头像')}});
 $('#avatarModal').addEventListener('click',e=>{if(e.target===$('#avatarModal'))closeAvatarModal()});
-async function initApp(){try{if(navigator.storage?.persist)navigator.storage.persist().catch(()=>false);await restoreLocalData();renderAvatarLibraryPreview();render();if(state.entries.length||state.pinnedEntries.length)schedulePersist();}catch(err){console.error(err);notify('本地数据恢复失败：'+err.message);renderAvatarLibraryPreview();render()}}
+async function initApp(){try{if(navigator.storage?.persist)navigator.storage.persist().catch(()=>false);await restoreLocalData();await loadBuiltinDouyinEmojiCatalog();renderAvatarLibraryPreview();render();if(state.entries.length||state.pinnedEntries.length)schedulePersist();}catch(err){console.error(err);notify('本地数据恢复失败：'+err.message);renderAvatarLibraryPreview();render()}}
 window.addEventListener('beforeunload',()=>{if(persistTimer){clearTimeout(persistTimer);persistTimer=null}persistLocalState().catch(()=>{})});
 initApp();
-window.__commentSimulatorTest={version:'7.0',hash,rng,keywordRules,roles,avatarDefs,avatarSrc,renderPNG,ZipWriter,photoFingerprint,loadFiles,pinEntries,allEntries,makeNickname,generateText,maybeAddDeathCause,commentPoolFor,nicknamePool,assignRandomAvatars,assignMissingAvatars,auditAvatarAssignments,avatarFingerprint,avatarLooksDuplicate,fetchPexelsAvatarPool,importDouyinEmojiFiles,applyDouyinEmojiRecords,CN_AVATAR_PHOTOS,render,get state(){return state},get entries(){return state.entries},get pinned(){return state.pinnedEntries}};
+window.__commentSimulatorTest={version:'8.0',hash,rng,keywordRules,roles,avatarDefs,avatarSrc,renderPNG,ZipWriter,photoFingerprint,loadFiles,pinEntries,allEntries,makeNickname,generateText,maybeAddDeathCause,commentPoolFor,nicknamePool,assignRandomAvatars,assignMissingAvatars,auditAvatarAssignments,avatarFingerprint,avatarLooksDuplicate,fetchPexelsAvatarPool,importDouyinEmojiFiles,applyDouyinEmojiRecords,loadBuiltinDouyinEmojiCatalog,ensureDouyinStickerLoaded,renderDouyinEmojiPicker,commentTokens,CN_AVATAR_PHOTOS,render,get state(){return state},get entries(){return state.entries},get pinned(){return state.pinnedEntries}};
 </script>
 </body>
 </html>
