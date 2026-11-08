@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="color-scheme" content="light" />
-<title>抖音评论模拟器 v8.1 · 已做视频卡片可编辑</title>
+<title>抖音评论模拟器 v8.2 · 真人口语评论库</title>
 <style>
 :root{--bg:#f6f7fa;--paper:#fff;--ink:#20232b;--muted:#858d9a;--line:#e9ebf0;--pink:#e65b83;--pinkSoft:#fff0f4;--dark:#292c36;--radius:17px;--shadow:0 7px 28px rgba(33,38,59,.045)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--ink);font-size:14px}button,select,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f5aac1;outline-offset:2px}
@@ -111,9 +111,9 @@
       <h3 class="section-title"><span class="step">02</span> 评论生成设置</h3>
       <div class="form-group"><label class="field-label" for="defaultRelation">默认人物关系</label><select id="defaultRelation"><option value="亲人">亲人（未知关系）</option><option value="妈妈">妈妈</option><option value="爸爸">爸爸</option><option value="奶奶">奶奶</option><option value="爷爷">爷爷</option><option value="外婆">外婆</option><option value="外公">外公</option><option value="姐姐">姐姐</option><option value="哥哥">哥哥</option><option value="妹妹">妹妹</option><option value="弟弟">弟弟</option><option value="爱人">爱人</option><option value="孩子">孩子</option><option value="朋友">朋友</option><option value="宠物">宠物</option></select><div class="small-tip">优先识别文件夹名称（如“妈妈 / 爷爷 / 外婆”），其次识别图片文件名；都无法识别时使用默认关系。可逐张调整。</div></div>
       <div class="form-group"><div class="field-label">评论表达风格</div><div class="segmented" id="toneButtons"><button type="button" data-tone="calm">克制</button><button type="button" data-tone="natural" class="active">自然</button><button type="button" data-tone="intense">强烈</button></div></div>
-      <div class="form-group"><label class="field-label" for="emojiCount">追加贴纸表情数 <span class="field-value" id="emojiNumber">6</span></label><input class="range" id="emojiCount" type="range" min="0" max="40" value="6" /></div>
+      <div class="form-group"><label class="field-label" for="emojiCount">最多追加表情数 <span class="field-value" id="emojiNumber">3</span></label><input class="range" id="emojiCount" type="range" min="0" max="12" value="3" /></div>
       <div class="form-group"><label class="field-label" for="photoFit">照片展示</label><select id="photoFit"><option value="cover">适度裁剪（参考截图）</option><option value="contain">完整显示（有留白）</option></select></div>
-      <div class="form-group"><label class="field-label" for="customTemplates">自定义评论补充库（可选）</label><textarea id="customTemplates" rows="3" placeholder="每行一句评论，支持用 {称呼} 自动替换亲属关系\n例如：博主，求你帮我把{称呼}的照片做成一段视频。"></textarea><div class="custom-hint">内置 2,500+ 个昵称；每种人物关系可组合出 7,000+ 条不同文案。系统会在未做视频和已做视频卡片之间检查重复。</div><div class="custom-hint">每行视为一条自定义模板；只在重新生成时随机抽选。已接入抖音表情图片库，评论预览与 PNG 导出使用表情原图；也可点击卡片下方按钮手动插入。</div></div>
+      <div class="form-group"><label class="field-label" for="customTemplates">自定义评论补充库（可选）</label><textarea id="customTemplates" rows="3" placeholder="每行一句评论，支持用 {称呼} 自动替换亲属关系\n例如：博主，求你帮我把{称呼}的照片做成一段视频。"></textarea><div class="custom-hint">昵称全局去重；评论按真人留言的句式随机生成，短句、称呼、去世时间和原因都不固定。</div><div class="custom-hint">每行视为一条自定义模板；只在重新生成时随机抽选。已接入抖音表情图片库，评论预览与 PNG 导出使用表情原图；也可点击卡片下方按钮手动插入。</div></div>
       <div class="btn-row"><button class="btn btn-mini" id="rematch">全部重新配文</button><button class="btn btn-mini" id="resetNames">重设昵称</button></div>
     </section>
     <section class="side-card side-content">
@@ -191,164 +191,22 @@
 const $=s=>document.querySelector(s);
 const relationList=['亲人','妈妈','爸爸','奶奶','爷爷','外婆','外公','姐姐','哥哥','妹妹','弟弟','爱人','孩子','朋友','宠物'];
 const roles={
-'亲人':{name:'亲人',pronoun:'TA',templates:[
-'博主，能不能帮我把这张照片做成一段会动的视频？这是我一直很想念的人，我只想再看见一次熟悉的笑容。',
-'刷到你的视频突然绷不住了，家里人离开之后，我才发现那些平常的日子真的回不去了。求求博主帮我用AI复刻一下。',
-'这是我手机里一直舍不得删的照片。博主可以让照片里的人再笑一下、说一句话吗？我真的好想念。',
-'求博主看看我，能不能帮我把以前的照片变成一段短视频？不需要太长，几秒钟就足够了。',
-'看别人发AI复刻亲人的视频，我眼泪一下就下来了。如果可以，我也想要一段属于自己的回忆。',
-'博主你好，我保存着一些旧照片，可惜没有清晰的视频。能不能帮我做成像生前一样自然说话的画面？',
-'有些人再也见不到了，才知道一张照片有多珍贵。博主能帮我把这份回忆做成视频吗？',
-'求求你了博主，我不想忘记TA以前笑起来的样子。有没有办法用AI让这张照片轻轻动起来？',
-'看到这个视频我真的忍不住想留言，能不能用我留下的照片做一段温暖的纪念视频？',
-'我一直舍不得换手机，就是因为里面存着这些照片。拜托博主，让回忆再鲜活一点点吧。',
-'照片里是我再也见不到的家人。我不敢奢望什么，就想看看TA朝着镜头微笑的样子。',
-'能帮我做一个小小的纪念吗？我只有照片，没有视频。哪怕只是一个回头、一个笑容，也很珍贵。',
-'博主可以接这样的委托吗？我想把家人的老照片做成一段AI纪念视频，留给家里人看。',
-'不是想把过去变成真的，只是想留下一段温柔的影像。求博主帮帮我。',
-'如果你能看到这条留言，拜托帮我把照片变成一段视频吧，我真的想念照片里的人。',
-'我知道AI不能真的让人回来，可我还是想看看那张熟悉的脸重新有表情的样子。博主求你了。'
-]},
-'妈妈':{name:'妈妈',pronoun:'她',templates:[
-'博主求求你，我妈妈已经不在了，能不能帮我把她的照片做成一段会说话的视频？我真的好想再听她叫我一次。',
-'以前总觉得妈妈会一直在，现在连一句唠叨都听不到了。博主能不能用AI帮我留住她的笑容？',
-'这是妈妈的照片，我翻了很久都没找到一段清楚的视频。求你帮我复刻一小段，真的谢谢。',
-'刷到这里突然想妈妈了。博主能帮我做一段她看着镜头微笑的视频吗？哪怕只有几秒也好。',
-'妈妈走了以后我一直不敢听以前的录音。如果可以，想用照片和声音做一段纪念视频，求博主看看。',
-'我好想再听妈妈问我吃饭了没有。可以帮我用AI还原一下她说话的样子吗？',
-'好羡慕还能和妈妈合照的人。博主，如果能做，我想把这张照片变成她还在笑着的视频。',
-'一直以为自己已经放下了，看到别人的AI纪念视频又泪目了。求求帮我做一个妈妈的。'
-]},
-'爸爸':{name:'爸爸',pronoun:'他',templates:[
-'博主，爸爸离开后我才发现他的照片这么少。能不能帮我做一段他看着镜头笑的视频？',
-'好想再听爸爸喊我一声。求博主帮我用AI复刻一下他的样子，只有几秒也可以。',
-'我爸以前最不爱拍照，现在留下的全是模糊的旧照片。求你帮我做一段纪念视频。',
-'小时候总觉得爸爸无所不能，现在只能对着照片说话。博主可以帮我让他再动起来吗？',
-'爸爸不在之后，家里安静了很多。看到你做的视频，突然特别想让他再对着镜头笑一次。',
-'拜托博主看看，想用爸爸的老照片和留下的录音做一段AI纪念视频，尽量自然一点。',
-'能不能帮我复刻爸爸年轻时的笑容？我记得他的声音，却找不到一段完整的视频。',
-'如果可以，我想做个视频给妈妈看，让她再看一眼爸爸熟悉的模样。'
-]},
-'奶奶':{name:'奶奶',pronoun:'她',templates:[
-'奶奶以前总在门口等我回家，现在再也看不到了。求博主帮我把奶奶的照片做成视频。',
-'博主求求你，我好想奶奶。能不能让她在照片里再笑一笑，好像还在看着我一样。',
-'小时候奶奶总给我留好吃的，长大以后却没能多陪陪她。想做一段AI纪念视频。',
-'我只有奶奶的几张旧照片，连她说话的声音都快记不清了。拜托帮我做一小段视频。',
-'刷到这个视频哭了，奶奶不在以后，再没人那样叫我小名了。求博主帮我试试。',
-'能帮我把奶奶的照片动起来吗？我想给全家人留一份特别的回忆。'
-]},
-'爷爷':{name:'爷爷',pronoun:'他',templates:[
-'爷爷以前特别爱笑，可惜没有留下多少视频。博主能帮我把他的照片做成短片吗？',
-'博主求求了，我真的好想爷爷。能不能用AI帮我还原一下他说话时的样子？',
-'小时候都是爷爷牵着我走路，现在只能翻看他的照片。想让这张照片动起来。',
-'爷爷走后我才知道，原来有些声音真的会慢慢记不清。能帮我做一段纪念视频吗？',
-'我想给爸爸一个惊喜，让他再看见爷爷微笑的样子。博主拜托你了。',
-'爷爷最喜欢我们一家人坐在一起，可惜以前没怎么拍视频。求博主帮忙复刻。'
-]},
-'外婆':{name:'外婆',pronoun:'她',templates:[
-'外婆离开后，我最怀念的就是她喊我吃饭的声音。博主能帮我做一段AI纪念视频吗？',
-'博主求求你，外婆的照片我一直珍藏着，想让她再对着镜头笑一次。',
-'小时候外婆的家就是最温暖的地方，现在只能看着照片发呆。求帮我复刻一小段视频。',
-'我好想外婆，想用她的旧照片做一个会动的纪念视频。博主能看看吗？',
-'这是外婆留下的照片，没有声音也没关系，能看到她自然地笑一下我就很满足了。',
-'每次路过以前外婆住的地方，还是会鼻子一酸。求博主帮我留住她的模样。'
-]},
-'外公':{name:'外公',pronoun:'他',templates:[
-'我一直很想外公，可惜连他的视频都没留下。博主能不能帮我用AI做一段？',
-'小时候外公总带我出去玩，现在只有照片了。求求博主帮我让照片动起来。',
-'好想再听外公喊我一声。博主可以帮我用老照片和录音做个纪念吗？',
-'外公以前每次见到我都笑得特别开心，想再看看那个表情，求博主帮我。',
-'我想做一段外公的AI纪念视频送给妈妈，照片不多但每张都很珍贵。',
-'外公不在之后，家里聚会总觉得少了一个人。能帮我把这张照片做成短视频吗？'
-]},
-'姐姐':{name:'姐姐',pronoun:'她',templates:[
-'博主求求了，我姐姐不在了，我真的好想她。能不能把她的照片做成一段视频？',
-'小时候姐姐总护着我，现在只能对着照片叫她。求博主帮我复刻她笑起来的样子。',
-'这是姐姐留在我手机里的照片，能帮我让她再对着镜头笑一笑吗？真的拜托。',
-'我还记得姐姐的声音，却已经很久没听到她说话了。能不能做一段AI纪念视频？',
-'看你的作品突然破防了，我也想留一段姐姐会动的影像，哪怕很短很短。',
-'每次看到这张照片都想和姐姐再说几句话。博主，求求你帮帮我。'
-]},
-'哥哥':{name:'哥哥',pronoun:'他',templates:[
-'哥哥离开后，我一直没舍得删和他的聊天记录。能不能帮我把照片做成一段AI视频？',
-'求博主帮帮我，我想再看哥哥冲着镜头笑一下，哪怕只有几秒钟。',
-'小时候哥哥总替我出头，现在我连他的视频都没有一段。拜托帮我复刻。',
-'我真的很想我哥，刷到你的作品眼泪一下就出来了。可以帮我做一段纪念视频吗？',
-'哥哥以前总说等有空带我去玩，如今只剩旧照片了。能不能让照片自然地动起来？',
-'这是哥哥的照片，求博主看看，想给家里人做一段留念的短视频。'
-]},
-'妹妹':{name:'妹妹',pronoun:'她',templates:[
-'妹妹不在之后，我才发现以前一起拍的视频太少了。求博主帮我用照片做一段纪念。',
-'博主，能不能帮我还原一下妹妹笑起来的模样？我真的很想她。',
-'手机里这张妹妹的照片一直是我的珍藏，想让她再自然地眨眨眼、笑一笑。',
-'有时候还是会下意识想找妹妹说话。求求博主帮我做一段AI纪念视频。',
-'妹妹以前最喜欢拍照，现在每张照片我都舍不得删。博主可以帮我做成视频吗？',
-'只希望能再看到妹妹看着镜头笑的样子，博主拜托你了。'
-]},
-'弟弟':{name:'弟弟',pronoun:'他',templates:[
-'弟弟离开之后，我一直不敢翻以前的照片。博主能不能帮我做一段温柔的纪念视频？',
-'我好想弟弟，想再听他说说笑笑。可以用AI帮我还原一下吗？',
-'博主求求你，这是弟弟的照片，我想让他再对着镜头笑一次。',
-'每次看到和弟弟一起拍的照片，心里都很难受。能帮我变成一段视频吗？',
-'弟弟以前总爱逗我笑，现在真的好想再看看他鲜活的样子。拜托博主了。',
-'我想把弟弟的照片做成AI纪念视频，给家里人留一个念想。'
-]},
-'爱人':{name:'爱人',pronoun:'TA',templates:[
-'最爱的人离开后，手机里的照片我翻了又翻。博主能不能帮我做一段TA微笑的视频？',
-'以前随手拍下的瞬间，现在成了最珍贵的东西。求你帮我用AI做一段纪念视频。',
-'如果能再看到TA朝着镜头笑一下，我就已经很满足了。博主，求求你。',
-'有些人只能留在回忆里了。我想把我们曾经的合照做成一段会动的短片。',
-'我还留着TA以前发来的语音，能和照片一起做成一段自然的视频吗？',
-'我知道视频不能代替真人，只想给自己留下一点熟悉的感觉。博主可以帮忙吗？',
-'每次路过我们一起去过的地方都忍不住想哭，想做一段关于TA的AI纪念视频。'
-]},
-'孩子':{name:'孩子',pronoun:'TA',templates:[
-'这是我一直珍藏的孩子的照片，想给家里留一段温柔的纪念视频。博主能帮帮我吗？',
-'有些思念说不出口，只想再看一眼孩子熟悉的笑容。求博主帮我做一段AI视频。',
-'我知道再真实的视频也无法替代相处过的日子，还是想把孩子的照片做成一个纪念。',
-'博主，可以帮我让这张孩子的照片轻轻动起来吗？我只想多留一点回忆。',
-'照片里的笑容是我最珍贵的东西。想把它做成一小段视频，放在手机里常常看看。',
-'如果可以，想请你用照片做一个安静温暖的纪念短片，不需要太多特效。'
-]},
-'朋友':{name:'朋友',pronoun:'TA',templates:[
-'最好的朋友不在了，我们以前总说要一起拍好多视频，结果留下的只有照片。博主能帮帮我吗？',
-'突然刷到这里，想起了一位再也见不到的朋友。求博主帮我做一段AI纪念视频。',
-'我们以前总是一起大笑，现在只能看照片想起那些日子。能不能让这张照片动起来？',
-'朋友离开以后，我才知道一张普通合照有多重要。求求博主帮我复刻一下。',
-'博主，这张照片里的朋友对我非常重要。想请你帮我做一段有温度的纪念视频。',
-'我还留着朋友以前发的语音，能不能结合照片做一段短视频，留作纪念？'
-]},
-'宠物':{name:'毛孩子',pronoun:'它',templates:[
-'我的毛孩子去了喵星球，视频里已经很少能看到它清楚的样子了。博主能帮我用AI复刻吗？',
-'博主求求你，我好想我家的小家伙。能不能让这张照片里的它再动起来？',
-'以前回家总有它跑过来，现在门口空空的。想用照片做一段纪念视频。',
-'它陪了我很长一段日子，现在只剩照片了。求你帮我做一段温柔的AI小视频。',
-'想再看到它摇尾巴、朝我跑来的样子，博主可以帮帮我吗？',
-'每次翻到这张照片都好想摸摸它。能帮我做成一个短短的纪念视频吗？'
-]}
+ '亲人':{name:'亲人',pronoun:'TA'},
+ '妈妈':{name:'妈妈',pronoun:'她'},
+ '爸爸':{name:'爸爸',pronoun:'他'},
+ '奶奶':{name:'奶奶',pronoun:'她'},
+ '爷爷':{name:'爷爷',pronoun:'他'},
+ '外婆':{name:'外婆',pronoun:'她'},
+ '外公':{name:'外公',pronoun:'他'},
+ '姐姐':{name:'姐姐',pronoun:'她'},
+ '哥哥':{name:'哥哥',pronoun:'他'},
+ '妹妹':{name:'妹妹',pronoun:'她'},
+ '弟弟':{name:'弟弟',pronoun:'他'},
+ '爱人':{name:'爱人',pronoun:'TA'},
+ '孩子':{name:'孩子',pronoun:'TA'},
+ '朋友':{name:'朋友',pronoun:'TA'},
+ '宠物':{name:'宠物',pronoun:'TA'}
 };
-const calmTemplates=[
-'您好博主，我想给已经离开的{称呼}做一段纪念视频。只有几张照片，希望能尽量自然地还原笑容。',
-'想请问能否通过AI，把{称呼}的旧照片做成一段简短的动态影像？对家人来说很有纪念意义。',
-'你好，我希望用这张照片做一段关于{称呼}的纪念短片，画面自然、温柔就好。',
-'家里的{称呼}已经不在身边了。如果可以，想请你帮忙制作一段有温度的回忆视频。',
-'想留住{称呼}以前的样子。请问能否用一张照片和过去的录音制作简短的AI影像？',
-'我很珍惜这张{称呼}的照片，希望有机会把它做成一个短短的视频，留给家人纪念。',
-'看到你制作的纪念视频，想问问是否也能帮我做一段{称呼}的，素材是以前拍的照片。',
-'您好，如果方便的话，希望用AI把{称呼}的照片做成自然微笑的短视频，用来留念。'
-];
-const intenseTemplates=[
-'博主求求你看看我😭 {称呼}走了之后我真的太想念了，我就想看这张照片里的TA再笑一下，拜托拜托。',
-'求求博主帮帮我吧，我真的好想我的{称呼}，手机里就这些照片了，能不能用AI还原一下。',
-'博主我真的要哭了，看了你做的AI视频好想{称呼}，能不能帮我也做一段，哪怕几秒钟都行。',
-'求你了博主，{称呼}不在了，我到现在还会忍不住翻照片。可以让这张照片动起来吗？',
-'博主拜托看到这条评论回我一下😭 我好想再看一眼{称呼}笑起来的样子，真的拜托了。',
-'刷到这里哭得停不下来，我也想用这张{称呼}的照片做一个视频，求求博主看看我。',
-'求求你帮我做一下{称呼}的视频吧，没别的愿望了，就想留下一段会动的回忆。',
-'博主真的求求你了，我知道人回不来，但我好想再看一眼{称呼}对着镜头微笑的样子。',
-'有没有可能帮帮我😭 我太想我的{称呼}了，照片都看了无数遍，好想再看到鲜活的表情。',
-'博主拜托拜托，我手机里只有几张{称呼}的老照片，真的好想有一小段自然的视频留着。'
-];
 const nicknames=['晚风也想你','小满同学','骑韭菜的咩咩','想念春天的云','橘子汽水','今天也要好好生活','一只芋泥啵啵','小熊不吃糖','风会记得','阿柚','每天都想吃草莓','小河慢慢流','有颗小星星','月亮不打烊','阿喵要早睡','春天的信箱','路过的人间','小雨点','不开心的番茄','奶油泡泡','软软的糯米团','等一场日落','小小阿宁','青柠半颗','零点的风','橙色的海','树下的猫','云朵收藏家','听风的日子','纸飞机','想念的距离','一颗小橘子','山茶花开了','半糖乌龙','花生小汤圆','向日葵不下雨','今天想放晴','旧时光','晚安星球','慢慢来吧','栀子花开','桃桃气泡水','落在肩头的雪','努力长大','小岛来信','南方有雨','没关系呀','会发光的小鱼','遥远的星星','吃一口糯米','拾起回忆','薄荷气泡','柠檬味的夏天','风中的铃铛','橙子味傍晚','望月的小猫'];
 const nicknamePrefixes=['晚风','月亮','山茶','小岛','橘子','海盐','云朵','南风','星河','青柠','小熊','松果','柚子','阿梨','小满','木槿','清欢','桃桃','奶糖','薄荷','橙子','海棠','一只','半颗','不晚','有风','听雨','追光','拾光','慢慢','温柔','今天','旧时光','小鱼','纸鸢','山间','春日','微光','夏夜','秋水','冬青','小鹿','阿月','晴天','晚星','白桃','青禾','山岚','浅浅','向阳'];
 const nicknameSuffixes=['来信','不打烊','慢慢走','收信人','小日子','有回音','在路上','等花开','看云去','的月亮','的风','收藏家','小星球','碎碎念','的晚安','不熬夜','的夏天','小确幸','和春天','在发光','的橘子','的海','小树洞','半糖','小朋友','的秘密','有点甜','小太阳','听雨声','去看海','的日常','不迷路','在远方','一场梦','等日落','向前走','有晴天','的星河','的小猫','的温柔','慢慢长大','在发光呀','小宇宙','的故事','拾光者','的云朵','的信箱','不迟到','不打扰','有回声'];
@@ -442,7 +300,7 @@ const keywordRules=[
 ['外婆',/(外婆|姥姥|maternalgrandma)/i],['外公',/(外公|姥爷|maternalgrandpa)/i],['奶奶',/(奶奶|祖母|grandma|grandmother)/i],['爷爷',/(爷爷|祖父|grandpa|grandfather)/i],['妈妈',/(妈妈|母亲|老妈|妈咪|mom|mum|mother)/i],['爸爸',/(爸爸|父亲|老爸|爹|dad|father|papa)/i],['姐姐',/(姐姐|老姐|sister)/i],['哥哥',/(哥哥|老哥|brother)/i],['妹妹',/(妹妹)/i],['弟弟',/(弟弟)/i],['爱人',/(老婆|老公|妻子|丈夫|爱人|恋人|女友|男友|伴侣|wife|husband|lover)/i],['孩子',/(孩子|女儿|儿子|宝宝|宝贝|daughter|son|child)/i],['朋友',/(朋友|闺蜜|兄弟|好友|friend|bestie)/i],['宠物',/(狗狗|猫咪|猫猫|宠物|小狗|小猫|汪星|喵星|kitten|puppy|pet)/i]
 ];
 const scenes=[['合照',/(合照|合影|双人照)/i,'这是一张我很珍惜的合照'],['全家福',/(全家福|familyphoto)/i,'这张全家福一直被我好好保存着'],['旧照片',/(旧照|老照片|童年|小时候|oldphoto)/i,'这张旧照片我保存了很久'],['生日',/(生日|birthday)/i,'每次看到这张生日照片都会想起以前'],['旅行',/(旅行|旅游|出游|trip|travel)/i,'这是我们以前旅行时拍下的照片']];
-const state={entries:[],pinnedEntries:[],view:'unfixed',page:1,perPage:12,seed:1,avatarSeed:1,idCounter:1,defaultAvatarId:null,avatarModalTargetId:null,avatarFilter:'全部',tone:'natural',emojiCount:6,defaultRelation:'亲人',fit:'cover',dirHandle:null,dirName:'',busy:false,customAvatarCount:0};
+const state={entries:[],pinnedEntries:[],view:'unfixed',page:1,perPage:12,seed:1,avatarSeed:1,idCounter:1,defaultAvatarId:null,avatarModalTargetId:null,avatarFilter:'全部',tone:'natural',emojiCount:3,defaultRelation:'亲人',fit:'cover',dirHandle:null,dirName:'',busy:false,customAvatarCount:0};
 function allEntries(){return [...state.entries,...state.pinnedEntries]}
 function getEntryById(id){return allEntries().find(e=>String(e.id)===String(id))||null}
 function makeId(){return 'card_'+Date.now().toString(36)+'_'+(state.idCounter++).toString(36)}
@@ -475,55 +333,167 @@ function graphemes(value){return typeof Intl.Segmenter==='function'?Array.from(n
 function commentTokens(value){const source=String(value),out=[],re=/\[[^\[\]\r\n]{1,28}\]/g;let last=0,m;while((m=re.exec(source))){out.push(...graphemes(source.slice(last,m.index)));out.push(m[0]);last=re.lastIndex;}out.push(...graphemes(source.slice(last)));return out;}
 function renderCommentText(value){return commentTokens(value).map(token=>stickerSrc[token]?'<img class="comment-emoji" src="'+escapeHTML(stickerSrc[token])+'" alt="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'">':escapeHTML(token)).join('');}
 
-function textWithEmoji(base,seed){const r=rng(seed+4071);let n=state.emojiCount;if(state.tone==='calm')n=Math.min(n,2);else if(state.tone==='natural')n=Math.min(n,12);const pool=['😭','😭','😭','🥹','😭','💔','🥺','🙏'];if(n===0)return base;const suffix=Array.from({length:n},()=>choice(pool,r)).join('');return base+(base.endsWith('。')?'':' ')+suffix}
+function textWithEmoji(base,seed){
+ const r=rng(seed+4071),limit=Math.max(0,Math.min(12,Number(state.emojiCount)||0));
+ if(!limit)return base;
+ const level=state.tone==='calm'?'calm':state.tone==='intense'?'intense':'natural';
+ const distribution=level==='calm'?[0,0,0,1,1,2]:level==='intense'?[0,1,2,2,3,3,4,4,5]:[0,0,1,1,1,2,2,3,3,4];
+ let n=Math.min(choice(distribution,r),limit);
+ if(n===0)return base;
+ const pool=['😭','😭','😭','😭','🥹','😢','🙏','💔'];
+ let emoji='';for(let i=0;i<n;i++)emoji+=choice(pool,r);
+ return base+(r()<0.78?' ':'')+emoji;
+}
 function getCustomTemplates(){return $('#customTemplates').value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,200)}
-const textOpeners=['博主你好，想请你帮个忙。','刷到你的作品，心里突然有些触动。','看完你的视频，我也想认真留下一条留言。','想问问博主，能不能帮我实现一个小小的心愿。','看到你分享的作品，忍不住想起了以前。','打扰一下，想向你咨询一件很重要的事。','关注你一段时间了，今天终于鼓起勇气留言。','你的作品让我想起了一个很重要的人。','路过这里，想把心里的话说出来。','博主，如果你看到这条留言，希望能回复我。'];
-const textContexts=['这张照片我一直舍不得删','我手机里还留着以前拍下的几张照片','这些旧照片被我保存了很多年','以前没意识到普通影像会变得这么珍贵','我只留下了照片，还有一些不太完整的录音','每次翻到这张照片，都会想起以前的日子','这张合照一直放在我的收藏夹里','我找了很久，还是没找到清晰的视频','现在能留住的就是这些影像和回忆','照片里的笑容，我到现在都记得','这张照片对我们一家人都很重要','这些年我一直想把这份回忆好好保存'];
-const textRequests=['能不能帮我把它做成一段自然的AI纪念视频','想再看看对方对着镜头微笑的样子','希望照片里的人能自然地眨眼、微笑','想把照片和以前留下的声音做成一段短片','能不能尽量保留原本的神态和说话感觉','哪怕只有几秒钟，也想留下一段温柔的影像','希望画面简单自然，不需要太多特效','想给家里人留下一段可以珍藏的纪念影像','能不能让这张照片变成一段有温度的小视频','想再听一次熟悉的声音，看看熟悉的笑容'];
-const textClosings=['如果可以的话，真的很感谢。','博主看到的话，麻烦回复我一下。','这对我来说真的很珍贵，谢谢你。','拜托你了，希望能有机会做成。','只想留作纪念，不会忘记这份思念。','谢谢你愿意看完我的留言。'];
+// v8.2：根据用户提供的真人评论样本重写。短口语、信息不完整、称呼自然变化。
+// 仅用来生成虚构示例，不应被当成真实用户的发言或经历。
 const commentPoolCache=new Map();
-const directCommentPatterns=[
-'我的{称呼}已经去世了，我真的很想念{TA}。博主，能不能帮我用AI做一段复活视频？',
-'{称呼}去世后，我一直很想念{TA}。希望博主能帮我把照片做成会动、会说话的视频。',
-'这是{称呼}生前的照片，{TA}已经不在了。我很想再看看{TA}，求博主帮我做一段AI复活视频。',
-'我一直保存着{称呼}的照片，很想再看一眼{TA}。博主能不能帮我用AI复刻一段视频？',
-'我家的{称呼}已经离开我{时间}了，我还是很想念{TA}。求博主帮忙把这张照片做成AI视频。',
-'我很想念去世的{称呼}，想再看看{TA}说话和微笑的样子。博主可以帮我吗？',
-'博主，能不能帮我用AI复活{称呼}？{TA}已经去世了，我真的很想{TA}。',
-'我只有{称呼}以前的照片，没有视频。想请你帮我做一段AI复活视频，我真的很想念{TA}。',
-'{称呼}去世已经好几年了，我每天都很想{TA}。希望博主能帮我做一段视频留念。',
-'求求博主帮我做一段{称呼}的AI复活视频，我想再听听{TA}说话，看看{TA}的样子。',
-'我想把{称呼}的照片做成自然说话的视频。{TA}已经不在了，我真的很想念{TA}。',
-'刷到你做的AI复活视频，我也想给去世的{称呼}做一段。博主能帮帮我吗？',
-'我家{称呼}去世了，留下的只有这些照片。希望博主能帮我用AI做一段复活视频。',
-'我真的很想念{称呼}，想再看看{TA}以前的样子。可以帮我做一段AI视频吗？',
-'博主，我想请你帮我复刻去世的{称呼}，用照片做一段自然的视频，可以吗？',
-'希望能用AI让{称呼}的照片动起来，最好还能说几句话。我很想念{TA}。',
-'这是我最珍惜的一张{称呼}照片。{TA}去世了，求博主帮我做一段AI复活视频。',
-'我{称呼}去世后，我一直保存着{TA}的照片。真的很想再见一面，求你帮我做视频。',
-'能不能帮我用AI做一段去世亲人的视频？照片是{称呼}的，我很想念{TA}。',
-'博主，你可以帮我复刻{称呼}的样子吗？{TA}已经去世，我希望留一段视频。',
-'我想委托你做一段{称呼}的AI复活视频，照片和以前的录音我都有，真的很想念{TA}。',
-'家里人已经去世了，我想用这张{称呼}的照片做一段视频。博主，求你帮帮我。',
-'我很想再听到{称呼}说话。能不能用照片和AI帮我做一段复活视频？',
-'博主，我的{称呼}不在了。我想再看看{TA}的脸、听听{TA}的声音，能帮我做视频吗？'
+const colloquialNames={
+ '亲人':['我家里人','我一个亲人','家里人','照片里的人'],
+ '妈妈':['我妈','我妈妈','妈妈','俺妈'],
+ '爸爸':['我爸','我爸爸','爸爸','俺爸'],
+ '奶奶':['我奶奶','奶奶','我家奶奶'],
+ '爷爷':['我爷爷','爷爷','我家爷爷'],
+ '外婆':['我外婆','我姥姥','外婆','姥姥'],
+ '外公':['我外公','我姥爷','外公','姥爷'],
+ '姐姐':['我姐','我姐姐','姐姐'],
+ '哥哥':['我哥','我哥哥','哥哥'],
+ '妹妹':['我妹','我妹妹','妹妹'],
+ '弟弟':['我弟','我弟弟','弟弟'],
+ '爱人':['我老公','我老婆','我爱人','我对象'],
+ '孩子':['我孩子','我的孩子','我儿子','我女儿','我家孩子'],
+ '朋友':['我朋友','我最好的朋友','我兄弟','我闺蜜'],
+ '宠物':['我家猫','我家狗狗','我家小狗','我家猫咪']
+};
+const casualTimeLoss=[
+ '去年走了','前几年走了','前两年去世了','去世快三年了','已经走了两年了',
+ '三年前就不在了','22年走的','23年去世了','走了快一年了','去年去世的',
+ '离开我们好几年了','今年年初走了','走了很多年了'
 ];
-const directCalmPatterns=[
-'我的{称呼}已经去世了，我想用生前照片做一段AI复活视频。请问博主可以接吗？',
-'想请博主帮我把去世的{称呼}的照片做成自然说话的视频，我很想念{TA}。',
-'{称呼}已经离世，我希望用AI留下一段视频纪念{TA}。博主能帮忙吗？',
-'我有{称呼}生前的照片和录音，想制作一段AI复活视频。可以联系你吗？'
+const casualCauseLoss=[
+ '生病走的','因为癌症走了','得了白血病后来没了','突然得病走了',
+ '是因为一场意外离开的','突发心梗走了','因为车祸没了','得了脑瘤去世的'
 ];
-const directIntensePatterns=[
-'博主求求你了，我真的好想我的{称呼}😭 {TA}已经去世了，能不能帮我做一段AI复活视频？',
-'我每天都在想{称呼}，真的很想再看{TA}一眼😭 求你帮我用AI做一段视频吧。',
-'{称呼}走了以后我一直很难过😭😭 求博主帮我把照片做成会说话的视频，拜托了。',
-'求求博主帮帮我😭 我好想念去世的{称呼}，真的想再听{TA}说一句话。'
+const elderlyCauseLoss=[
+ '生病走的','因为癌症走了','得了白血病后来没了','突然得病走了',
+ '是因为一场意外离开的','突发心梗走了','因为车祸没了','年纪大了走的'
 ];
-function commentPoolFor(role){if(commentPoolCache.has(role))return commentPoolCache.get(role);const info=roles[role]||roles['亲人'];const rel=role==='亲人'?'家人':info.name;const pro=info.pronoun;const durations=['一年','两年','三年','五年','很多年'];const pool=directCommentPatterns.flatMap(t=>durations.map(time=>t.replaceAll('{称呼}',rel).replaceAll('{TA}',pro).replaceAll('{时间}',time)));const unique=[...new Set([...pool,...directCommentPatterns.map(t=>t.replaceAll('{称呼}',rel).replaceAll('{TA}',pro).replaceAll('{时间}','很久'))])];commentPoolCache.set(role,unique);return unique}
-const deathCausePatterns=['{TA}是因为生病离开的','{TA}因癌症去世','{TA}因突发疾病离世','{TA}是在一次意外中离开的','{TA}因心脏病离世','{TA}是因交通事故离开的','{TA}年纪大了，身体慢慢衰弱后离开的','{TA}生病治疗了一段时间，最后还是没能留下来'];
-function maybeAddDeathCause(text,e,seed){const r=rng(seed^0x51f15e);if(r()>=0.28)return text;const pro=(roles[e.role]||roles['亲人']).pronoun;if(/因癌症|因病|因心脏病|突发疾病|交通事故|意外中|身体慢慢衰弱/.test(text))return text;const cause=choice(deathCausePatterns,r).replaceAll('{TA}',pro);if(text.includes('。'))return text.replace('。',`。${cause}。`);return `${text} ${cause}。`}
-function generateText(e){const r=rng(hash((e.file?.name||e.fileName||'photo')+'|'+e.role+'|'+state.seed+'|'+state.entries.length));const rel=e.role==='亲人'?'家人':(roles[e.role]||roles['亲人']).name;const pro=(roles[e.role]||roles['亲人']).pronoun;let candidates=[...commentPoolFor(e.role),...getCustomTemplates().map(x=>x.replaceAll('{称呼}',rel).replaceAll('{TA}',pro))];if(state.tone==='calm')candidates=[...directCalmPatterns.map(x=>x.replaceAll('{称呼}',rel).replaceAll('{TA}',pro)),...candidates];if(state.tone==='intense')candidates=[...directIntensePatterns.map(x=>x.replaceAll('{称呼}',rel).replaceAll('{TA}',pro)),...candidates];const used=new Set(allEntries().filter(x=>String(x.id)!==String(e.id)).map(x=>normalizedUniqueText(x.text)));const start=Math.floor(r()*candidates.length);for(let i=0;i<candidates.length;i++){const base=candidates[(start+i)%candidates.length];const seed=hash((e.file?.name||e.fileName||'photo')+'emoji'+state.seed+'|'+i);const candidate=maybeAddDeathCause(textWithEmoji(base,seed),e,seed+913);if(!used.has(normalizedUniqueText(candidate)))return candidate;}return maybeAddDeathCause(textWithEmoji(`我的${rel}已经去世了，我真的很想念${pro}。博主，能不能帮我用AI做一段复活视频？`,hash(String(e.id)+state.seed)),e,hash(String(e.id)+state.seed+33))+' '+String(state.entries.length+1)}
+const childCauseLoss=[
+ '生病走的','得了白血病没救回来','因为一场意外走了','突然生病走了',
+ '因为车祸离开了'
+];
+const petCauseLoss=['生病走了','突然生病没了','因为意外走了'];
+const casualAgeContexts=['我上小学的时候','我一年级的时候','我5岁的时候','我8岁的时候','我12岁的时候','我读初中的时候'];
+const casualRequestLines=[
+ '主播能帮我做个视频吗',
+ '求博主帮我做一个',
+ '能不能帮我做段视频',
+ '主播求求你了帮我做一下',
+ '可以帮我做个AI复活视频吗',
+ '想把这张照片做成会动的',
+ '我也想做一个ai复活视频',
+ '能帮我复刻一下吗',
+ '博主能不能帮帮我',
+ '求求你帮我做个视频吧',
+ '可以把照片变成视频吗',
+ '博主可以帮我弄一个吗',
+ '能帮忙把这张照片做成视频吗',
+ '希望博主能看到我的评论',
+ '求主播让我再见一面吧',
+ '求你帮我做一下好不好'
+];
+const casualStrongRequests=[
+ '主播求求你了',
+ '求求主播帮我做一个吧',
+ '求博主看看我😭',
+ '求求了真的',
+ '主播能不能让我再见一面',
+ '求求你了帮我做个视频'
+];
+const casualFeelings={
+ '他':['真的好想他','我好想再见他一面','我都快忘记他长啥样了','我现在都记不清他的声音了','每天都想他','我好想听他再说一句话','最后一面也没见到','到现在都不敢看他的照片'],
+ '她':['真的好想她','我好想再见她一面','我都怕忘了她的模样','我现在都记不清她的声音了','每天都想她','我好想听她再说一句话','最后一面也没见到','好久没有见过她了'],
+ 'TA':['真的好想再见一面','我真的特别想念','很久没有看到以前的样子了','照片我一直都留着','我都快记不清以前长什么样了','我真的还想再看一次','就想再看一眼','不知道还能不能看到会动的视频']
+};
+function casualPerson(role,r){return choice(colloquialNames[role]||colloquialNames['亲人'],r)}
+function casualSituation(e,r){
+ const who=casualPerson(e.role,r);
+ const causes=e.role==='宠物'?petCauseLoss:e.role==='孩子'?childCauseLoss:['爷爷','奶奶','外婆','外公'].includes(e.role)?elderlyCauseLoss:casualCauseLoss;
+ const rnd=r();
+ if(rnd<0.23)return who+choice(causes,r);
+ if(rnd<0.31&&e.role!=='宠物'&&e.role!=='孩子')return choice(casualAgeContexts,r)+who+choice(['就走了','去世了','没了'],r);
+ if(rnd<0.63)return who+choice(casualTimeLoss,r);
+ return who+choice(['去世了','走了','不在了','已经去世了','走了好几年了'],r);
+}
+function casualFeeling(e,r){
+ const role=roles[e.role]||roles['亲人'];
+ return choice(casualFeelings[role.pronoun]||casualFeelings.TA,r);
+}
+function casualRequest(e,r){
+ const base=state.tone==='intense'&&r()<0.5?choice(casualStrongRequests,r):choice(casualRequestLines,r);
+ return base;
+}
+function maybeAddDeathCause(text,e,seed){
+ // 兼容旧测试接口；新增去世原因现在在 casualSituation 中自然插入，不再硬塞在结尾。
+ const r=rng(seed^0x51f15e);
+ if(r()>=0.23)return text;
+ if(/因为|白血病|癌症|车祸|生病|心梗|脑瘤|意外|年纪大了/.test(text))return text;
+ const causes=e.role==='宠物'?petCauseLoss:e.role==='孩子'?childCauseLoss:['爷爷','奶奶','外婆','外公'].includes(e.role)?elderlyCauseLoss:casualCauseLoss;
+ return text+' '+casualPerson(e.role,r)+choice(causes,r);
+}
+function naturalSpacing(parts,r){
+ const arr=parts.filter(Boolean);
+ const p=r();
+ if(p<0.58)return arr.join(' ');
+ if(p<0.78)return arr.join('，');
+ if(p<0.92)return arr.join('  ');
+ return arr.join(' ');
+}
+function buildCasualComment(e,r){
+ const situation=casualSituation(e,r),feel=casualFeeling(e,r),request=casualRequest(e,r);
+ const hasFeeling=r()< (state.tone==='calm'?0.30:state.tone==='intense'?0.79:0.55);
+ const style=Math.floor(r()*12);
+ let parts=[];
+ if(style===0)parts=[request,situation];
+ else if(style===1)parts=[situation,request];
+ else if(style===2)parts=[situation,hasFeeling?feel:'',request];
+ else if(style===3)parts=['求求博主了',situation,request.replace(/^(主播|博主|求求主播|求博主)/,'')];
+ else if(style===4)parts=[situation,request,hasFeeling?feel:''];
+ else if(style===5)parts=['博主',situation,hasFeeling?feel:'',request.replace(/^博主/,'')];
+ else if(style===6)parts=[situation,hasFeeling?feel:'',request];
+ else if(style===7)parts=['刷到你这个视频了',situation,request];
+ else if(style===8)parts=[request,situation,hasFeeling?feel:''];
+ else if(style===9)parts=[situation,request.replace(/^主播/,'博主')];
+ else if(style===10)parts=['求主播帮我一下',situation,hasFeeling?feel:''];
+ else parts=[situation,hasFeeling?feel:'',request];
+ if(state.tone==='calm')parts=parts.filter(part=>!/^求求/.test(part)||r()<0.18);
+ const formatted=naturalSpacing(parts,r).replace(/  +/g,' ').replace(/求求博主了 求博主/g,'求求博主了').trim();
+ if(r()<0.08&&/[吗呢]$/.test(formatted))return formatted+'？';
+ return formatted;
+}
+function commentPoolFor(role){
+ if(commentPoolCache.has(role))return commentPoolCache.get(role);
+ // 这里展示“构句素材”，不再用 24 句长模板反复替换关系称呼。
+ const pool=[...(colloquialNames[role]||colloquialNames['亲人']),...casualRequestLines,...casualTimeLoss];
+ commentPoolCache.set(role,pool);
+ return pool;
+}
+function generateText(e){
+ const id=(e.file?.name||e.fileName||'photo')+'|'+(e.photoKey||e.id||'')+'|'+e.role+'|'+state.seed;
+ const used=new Set(allEntries().filter(x=>String(x.id)!==String(e.id)).map(x=>normalizedUniqueText(x.text)).filter(Boolean));
+ const custom=getCustomTemplates();
+ for(let i=0;i<2400;i++){
+   const seed=hash(id+'|'+i),r=rng(seed);
+   const info=roles[e.role]||roles['亲人'];
+   const rel=e.role==='亲人'?'家人':info.name;
+   let base;
+   if(custom.length&&r()<0.23)base=choice(custom,r).replaceAll('{称呼}',rel).replaceAll('{TA}',info.pronoun==='TA'?'':info.pronoun);
+   else base=buildCasualComment(e,r);
+   const candidate=textWithEmoji(base,seed^0x16c3);
+   if(candidate.length>=10&&candidate.length<=150&&!used.has(normalizedUniqueText(candidate)))return candidate;
+ }
+ return textWithEmoji('求主播帮我做个视频 这是我家里人的照片 真的很想再看一眼',hash(id+'last'));
+}
 function makeNickname(e){const r=rng(hash((e.file?.name||e.fileName||'photo')+'nickname'+state.seed));const used=new Set(allEntries().filter(x=>String(x.id)!==String(e.id)).map(x=>normalizedUniqueText(x.nickname)));const start=Math.floor(r()*nicknamePool.length);for(let i=0;i<nicknamePool.length;i++){const n=nicknamePool[(start+i)%nicknamePool.length];if(!used.has(normalizedUniqueText(n)))return n;}return `路过的朋友${state.idCounter}`}
 function filenameOf(file,relativePath=''){return String(relativePath||file.webkitRelativePath||file.name).replace(/\\/g,'/').split('/').pop()}
 function prepareEntry(file,index,relativePath='',rootName='',photoKey=''){
@@ -559,11 +529,19 @@ function avatarFallbackData(){const svg='<svg xmlns="http://www.w3.org/2000/svg"
 async function cacheAvatarImage(id,img){if(!id||!img?.isConnected||img.dataset.avatarError==='1')return;try{const blob=await getAvatarBlob(id);let url=avatarObjectUrls.get(id);if(!url){url=URL.createObjectURL(blob);avatarObjectUrls.set(id,url)}if(img.isConnected){img.dataset.avatarError='0';img.classList.remove('avatar-load-failed');if(img.src!==url)img.src=url}}catch(err){if(img.isConnected){img.dataset.avatarError='1';img.title='头像加载失败：请检查网络，或导入本地头像素材';img.classList.add('avatar-load-failed');img.src=avatarFallbackData()}}}
 async function pinEntries(entries,blobs){const records=[];for(let i=0;i<entries.length;i++){const e=entries[i],pngBlob=blobs[i],avatarBlob=await getAvatarBlob(e.avatarId);records.push({id:e.id,fileName:e.file.name,relativePath:e.relativePath,photoKey:e.photoKey,role:e.role,roleSource:e.roleSource,avatarId:e.avatarId,avatarLabel:avatarName(e.avatarId),nickname:e.nickname,text:e.text,aspect:e.aspect,fit:state.fit,pinned:true,pinnedAt:Date.now(),pngBlob,photoBlob:e.file,avatarBlob})}await dbPutMany('pinnedCards',records);const pinned=records.map(r=>({...r,url:r.photoBlob?URL.createObjectURL(r.photoBlob):null,pngUrl:URL.createObjectURL(r.pngBlob)}));const ids=new Set(pinned.map(e=>String(e.id)));state.pinnedEntries.push(...pinned);state.entries=state.entries.filter(e=>{if(ids.has(String(e.id))){URL.revokeObjectURL(e.url);return false}return true});state.view='unfixed';state.page=1;await persistLocalState()}
 async function loadAvatarManifest(){const chinese=CN_AVATAR_PHOTOS.map(([id,name,photo,author,page])=>({id,name,category:'中国真人',src:cnAvatarUrl(photo),fallbackSrc:`https://images.unsplash.com/${photo}?fit=crop&crop=faces&w=320&h=320&q=82`,source:`Unsplash · ${author}`,sourcePage:page}));const legacy=Array.from({length:DEFAULT_AVATAR_COUNT},(_,i)=>{const file=`${String(i+1).padStart(3,'0')}.jpg`;return {id:`cc0-${i+1}`,name:`备用真人头像 ${String(i+1).padStart(3,'0')}`,category:'国际真人',src:AVATAR_CDN+file,fallbackSrc:AVATAR_RAW+file,source:'leonadler/inter-faces CC0'}});avatarDefs.splice(0,avatarDefs.length,...chinese,...legacy)}
-function readSettingsFromUI(){return {tone:state.tone,emojiCount:state.emojiCount,defaultRelation:state.defaultRelation,fit:state.fit,customTemplates:$('#customTemplates').value,seed:state.seed,avatarSeed:state.avatarSeed,idCounter:state.idCounter,defaultAvatarId:state.defaultAvatarId,dirName:state.dirName,view:state.view,page:state.page,perPage:state.perPage,avatarFilter:state.avatarFilter,avatarPoolVersion:7}}
+function readSettingsFromUI(){return {tone:state.tone,emojiCount:state.emojiCount,defaultRelation:state.defaultRelation,fit:state.fit,customTemplates:$('#customTemplates').value,seed:state.seed,avatarSeed:state.avatarSeed,idCounter:state.idCounter,defaultAvatarId:state.defaultAvatarId,dirName:state.dirName,view:state.view,page:state.page,perPage:state.perPage,avatarFilter:state.avatarFilter,avatarPoolVersion:7,commentPoolVersion:2}}
 let persistTimer=null,persistInProgress=Promise.resolve();
 async function persistLocalState(){const db=await openDB();const tx=db.transaction(['appState','draftCards'],'readwrite');const settings={id:'settings',...readSettingsFromUI(),savedAt:Date.now()};tx.objectStore('appState').put(settings);const drafts=tx.objectStore('draftCards');drafts.clear();for(const e of state.entries){drafts.put({id:e.id,fileBlob:e.file,fileName:e.file?.name||e.fileName||'photo',fileType:e.file?.type||'image/jpeg',lastModified:e.file?.lastModified||Date.now(),relativePath:e.relativePath||e.file?.name||'',photoKey:e.photoKey,role:e.role,roleSource:e.roleSource,scene:e.scene,avatarId:e.avatarId,nickname:e.nickname,text:e.text,edited:!!e.edited,aspect:e.aspect||0,pinned:false})}await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('自动保存失败'));tx.onabort=()=>reject(tx.error||new Error('自动保存中断'))});}
 function schedulePersist(){if(persistTimer)clearTimeout(persistTimer);persistTimer=setTimeout(()=>{persistInProgress=persistInProgress.then(()=>persistLocalState()).catch(err=>{console.warn('自动保存失败',err);notify('本地自动保存失败：'+err.message)})},280)}
-async function restoreLocalData(){await loadAvatarManifest();const [pinned,custom,cached,drafts,settings,manifest,emojiRecords]=await Promise.all([dbGetAll('pinnedCards'),dbGetAll('customAvatars'),dbGetAll('avatarBlobs'),dbGetAll('draftCards'),dbGet('appState','settings'),dbGetAll('avatarManifest'),dbGetAll('douyinEmojiBlobs')]);for(const rec of cached){if(rec.blob){const url=URL.createObjectURL(rec.blob);avatarObjectUrls.set(rec.id,url)}}for(const rec of custom){const url=URL.createObjectURL(rec.blob);avatarDefs.push({id:rec.id,name:rec.name,category:'自定义',src:url,blob:rec.blob,fingerprint:rec.fingerprint});state.customAvatarCount++}for(const rec of manifest){if(rec?.def&&rec.provider==='pexels'&&!avatarDefs.some(d=>d.id===rec.id))avatarDefs.push(rec.def)}applyDouyinEmojiRecords(emojiRecords);state.pinnedEntries=pinned.map(r=>{if(r.avatarBlob){const avatarUrl=URL.createObjectURL(r.avatarBlob);avatarObjectUrls.set(r.avatarId,avatarUrl)}return {...r,url:r.photoBlob?URL.createObjectURL(r.photoBlob):null,pngUrl:URL.createObjectURL(r.pngBlob)}});if(settings){for(const key of ['tone','emojiCount','defaultRelation','fit','seed','avatarSeed','idCounter','defaultAvatarId','dirName','view','page','perPage','avatarFilter'])if(settings[key]!==undefined)state[key]=settings[key];$('#defaultRelation').value=state.defaultRelation;$('#emojiCount').value=state.emojiCount;$('#emojiNumber').textContent=state.emojiCount;$('#photoFit').value=state.fit;$('#customTemplates').value=settings.customTemplates||'';$('#toneButtons').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tone===state.tone))}state.entries=drafts.map(r=>{const blob=r.fileBlob;const file=blob instanceof File?blob:new File([blob],r.fileName||'photo',{type:r.fileType||blob?.type||'image/jpeg',lastModified:r.lastModified||Date.now()});const url=URL.createObjectURL(file);return {id:r.id,file,url,fileName:r.fileName,relativePath:r.relativePath,photoKey:r.photoKey,role:r.role,roleSource:r.roleSource,scene:r.scene,avatarId:r.avatarId,nickname:r.nickname,text:r.text,edited:!!r.edited,aspect:r.aspect||0,pinned:false}});const validAvatarIds=new Set(avatarDefs.map(d=>d.id));if(state.defaultAvatarId&&!validAvatarIds.has(state.defaultAvatarId))state.defaultAvatarId=null;if(!['全部','中国真人','国际真人','自定义'].includes(state.avatarFilter))state.avatarFilter='全部';const migrateAvatarPool=!settings||settings.avatarPoolVersion!==7;if(migrateAvatarPool){state.defaultAvatarId=null;for(const e of state.entries)e.avatarId=null}for(const e of state.entries)if(!validAvatarIds.has(e.avatarId))e.avatarId=null;await assignMissingAvatars();if(migrateAvatarPool)await persistLocalState();if(state.entries.length||state.pinnedEntries.length)notify(`已恢复本地数据：未固定 ${state.entries.length} 张，已做视频 ${state.pinnedEntries.length} 张；未固定卡片已按中国头像优先规则整理`);}
+async function restoreLocalData(){await loadAvatarManifest();const [pinned,custom,cached,drafts,settings,manifest,emojiRecords]=await Promise.all([dbGetAll('pinnedCards'),dbGetAll('customAvatars'),dbGetAll('avatarBlobs'),dbGetAll('draftCards'),dbGet('appState','settings'),dbGetAll('avatarManifest'),dbGetAll('douyinEmojiBlobs')]);for(const rec of cached){if(rec.blob){const url=URL.createObjectURL(rec.blob);avatarObjectUrls.set(rec.id,url)}}for(const rec of custom){const url=URL.createObjectURL(rec.blob);avatarDefs.push({id:rec.id,name:rec.name,category:'自定义',src:url,blob:rec.blob,fingerprint:rec.fingerprint});state.customAvatarCount++}for(const rec of manifest){if(rec?.def&&rec.provider==='pexels'&&!avatarDefs.some(d=>d.id===rec.id))avatarDefs.push(rec.def)}applyDouyinEmojiRecords(emojiRecords);state.pinnedEntries=pinned.map(r=>{if(r.avatarBlob){const avatarUrl=URL.createObjectURL(r.avatarBlob);avatarObjectUrls.set(r.avatarId,avatarUrl)}return {...r,url:r.photoBlob?URL.createObjectURL(r.photoBlob):null,pngUrl:URL.createObjectURL(r.pngBlob)}});if(settings){for(const key of ['tone','emojiCount','defaultRelation','fit','seed','avatarSeed','idCounter','defaultAvatarId','dirName','view','page','perPage','avatarFilter'])if(settings[key]!==undefined)state[key]=settings[key];$('#defaultRelation').value=state.defaultRelation;$('#emojiCount').value=state.emojiCount;$('#emojiNumber').textContent=state.emojiCount;$('#photoFit').value=state.fit;$('#customTemplates').value=settings.customTemplates||'';$('#toneButtons').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tone===state.tone))}state.entries=drafts.map(r=>{const blob=r.fileBlob;const file=blob instanceof File?blob:new File([blob],r.fileName||'photo',{type:r.fileType||blob?.type||'image/jpeg',lastModified:r.lastModified||Date.now()});const url=URL.createObjectURL(file);return {id:r.id,file,url,fileName:r.fileName,relativePath:r.relativePath,photoKey:r.photoKey,role:r.role,roleSource:r.roleSource,scene:r.scene,avatarId:r.avatarId,nickname:r.nickname,text:r.text,edited:!!r.edited,aspect:r.aspect||0,pinned:false}});const validAvatarIds=new Set(avatarDefs.map(d=>d.id));if(state.defaultAvatarId&&!validAvatarIds.has(state.defaultAvatarId))state.defaultAvatarId=null;if(!['全部','中国真人','国际真人','自定义'].includes(state.avatarFilter))state.avatarFilter='全部';const migrateCommentPool=!settings||settings.commentPoolVersion!==2;
+if(migrateCommentPool&&(!settings||settings.emojiCount===6)){
+  state.emojiCount=3;$('#emojiCount').value=3;$('#emojiNumber').textContent=3;
+}
+if(migrateCommentPool){
+ for(const e of state.entries)if(!e.edited)e.text='';
+ for(const e of state.entries)if(!e.edited)e.text=generateText(e);
+}
+const migrateAvatarPool=!settings||settings.avatarPoolVersion!==7;if(migrateAvatarPool){state.defaultAvatarId=null;for(const e of state.entries)e.avatarId=null}for(const e of state.entries)if(!validAvatarIds.has(e.avatarId))e.avatarId=null;await assignMissingAvatars();if(migrateAvatarPool||migrateCommentPool)await persistLocalState();if(state.entries.length||state.pinnedEntries.length)notify(`已恢复本地数据：未固定 ${state.entries.length} 张，已做视频 ${state.pinnedEntries.length} 张；新评论库已生效`);}
 
 function renderAvatarLibraryPreview(){const host=$('#avatarLibraryPreview');if(!host)return;const sample=avatarDefs.filter(d=>d.category==='中国真人').slice(-14);host.innerHTML=sample.map(d=>`<img data-avatar-id="${d.id}" crossorigin="anonymous" referrerpolicy="no-referrer" loading="lazy" src="${avatarSrc(d.id)}" title="${escapeHTML(d.name)}" alt="${escapeHTML(d.name)}">`).join('');const count=avatarDefs.filter(d=>d.category==='中国真人').length;const label=$('#avatarLibraryCount');if(label)label.textContent=`中国相关真人头像 ${count} 款 · 全局不重复分配；Pexels 搜索结果需人工核验` ;const info=document.querySelector('.avatar-library-info');if(info)info.textContent=`中国相关真人头像 ${count} 款（Pexels API 可扩充至1000+），另有100款CC0备用头像；所有卡片共用全局唯一头像池。`}
 function renderAvatarModal(){const filters=['全部','中国真人','国际真人','自定义'];$('#avatarFilters').innerHTML=filters.map(c=>`<button type="button" data-category="${c}" class="${state.avatarFilter===c?'active':''}">${c}</button>`).join('');const list=avatarDefs.filter(d=>state.avatarFilter==='全部'||d.category===state.avatarFilter);const target=state.entries.find(e=>String(e.id)===String(state.avatarModalTargetId));const used=new Set(allEntries().filter(e=>!target||String(e.id)!==String(target.id)).map(e=>e.avatarId).filter(Boolean));$('#avatarGrid').innerHTML=list.map(d=>{const occupied=used.has(d.id);return `<button type="button" class="avatar-option ${(target?target.avatarId===d.id:state.defaultAvatarId===d.id)?'selected':''} ${occupied?'used':''}" data-avatar-id="${d.id}" ${occupied?'disabled':''} title="${occupied?'已分配给其他卡片':d.name}"><img data-avatar-id="${d.id}" crossorigin="anonymous" referrerpolicy="no-referrer" loading="lazy" src="${avatarSrc(d.id)}" alt="${escapeHTML(d.name)}"><span>${escapeHTML(d.name)}</span><small>${occupied?'已占用':d.pexels?`<a href="${escapeHTML(d.sourcePage||'https://www.pexels.com/')}" target="_blank" rel="noopener">照片</a> · <a href="${escapeHTML(d.photographerUrl||'https://www.pexels.com/')}" target="_blank" rel="noopener">${escapeHTML(d.photographer||'Pexels摄影师')}</a>`:escapeHTML(d.category)}</small></button>`}).join('')}
@@ -841,7 +819,7 @@ $('#avatarModal').addEventListener('click',e=>{if(e.target===$('#avatarModal'))c
 async function initApp(){try{if(navigator.storage?.persist)navigator.storage.persist().catch(()=>false);await restoreLocalData();await loadBuiltinDouyinEmojiCatalog();renderAvatarLibraryPreview();render();if(state.entries.length||state.pinnedEntries.length)schedulePersist();}catch(err){console.error(err);notify('本地数据恢复失败：'+err.message);renderAvatarLibraryPreview();render()}}
 window.addEventListener('beforeunload',()=>{if(persistTimer){clearTimeout(persistTimer);persistTimer=null}persistLocalState().catch(()=>{})});
 initApp();
-window.__commentSimulatorTest={version:'8.1',hash,rng,keywordRules,roles,avatarDefs,avatarSrc,renderPNG,ZipWriter,photoFingerprint,loadFiles,pinEntries,allEntries,makeNickname,generateText,maybeAddDeathCause,commentPoolFor,nicknamePool,assignRandomAvatars,assignMissingAvatars,auditAvatarAssignments,avatarFingerprint,avatarLooksDuplicate,fetchPexelsAvatarPool,importDouyinEmojiFiles,applyDouyinEmojiRecords,loadBuiltinDouyinEmojiCatalog,ensureDouyinStickerLoaded,renderDouyinEmojiPicker,commentTokens,CN_AVATAR_PHOTOS,render,get state(){return state},get entries(){return state.entries},get pinned(){return state.pinnedEntries}};
+window.__commentSimulatorTest={version:'8.2',hash,rng,keywordRules,roles,avatarDefs,avatarSrc,renderPNG,ZipWriter,photoFingerprint,loadFiles,pinEntries,allEntries,makeNickname,generateText,maybeAddDeathCause,commentPoolFor,nicknamePool,assignRandomAvatars,assignMissingAvatars,auditAvatarAssignments,avatarFingerprint,avatarLooksDuplicate,fetchPexelsAvatarPool,importDouyinEmojiFiles,applyDouyinEmojiRecords,loadBuiltinDouyinEmojiCatalog,ensureDouyinStickerLoaded,renderDouyinEmojiPicker,commentTokens,CN_AVATAR_PHOTOS,render,get state(){return state},get entries(){return state.entries},get pinned(){return state.pinnedEntries}};
 </script>
 </body>
 </html>
