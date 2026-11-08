@@ -745,7 +745,7 @@ function renderDouyinEmojiPicker(){
   const query=(search?.value||'').trim().toLocaleLowerCase('zh-CN');
   const items=douyinStickerCatalog.filter(item=>!query||String(item.display_name||'').toLocaleLowerCase('zh-CN').includes(query)||String(item.show_name||'').toLocaleLowerCase('zh-CN').includes(query));
   $('#emojiPickerCount').textContent='显示 '+items.length+' / '+douyinStickerCatalog.length+' 款 · 本机已缓存 '+douyinEmojiRecordMap.size+' 款';
-  grid.innerHTML=items.map(item=>{const token=item.display_name||'['+item.show_name+']';return '<button type="button" class="emoji-option" data-emoji-token="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'"><img loading="lazy" src="'+escapeHTML(douyinStickerImageUrl(item))+'" data-fallback-src="'+escapeHTML(DOUYIN_ASSET_RAW+'/static/'+encodeURIComponent(item.uri))+'" alt="'+escapeHTML(token)+'"><span>'+escapeHTML(stickerName(token))+'</span></button>'}).join('')||'<div class="emoji-empty">没有找到匹配的表情</div>';
+  grid.innerHTML=items.map(item=>{const token=item.display_name||'['+item.show_name+']',cached=douyinEmojiRecordMap.get('douyin-'+String(item.uri).toLowerCase()),imageUrl=cached?.objectUrl||douyinStickerImageUrl(item);return '<button type="button" class="emoji-option" data-emoji-token="'+escapeHTML(token)+'" title="'+escapeHTML(token)+'"><img loading="lazy" src="'+escapeHTML(imageUrl)+'" data-fallback-src="'+escapeHTML(DOUYIN_ASSET_RAW+'/static/'+encodeURIComponent(item.uri))+'" alt="'+escapeHTML(token)+'"><span>'+escapeHTML(stickerName(token))+'</span></button>'}).join('')||'<div class="emoji-empty">没有找到匹配的表情</div>';
 }
 async function cacheAllDouyinEmojis(){
   if(state.busy)return;
