@@ -730,8 +730,9 @@ async function loadBuiltinDouyinEmojiCatalog(){
       douyinStickerCatalog=data.stickers;
       const status=$('#douyinEmojiStatus');if(status)status.textContent='已加载 '+douyinStickerCatalog.length+' 款抖音表情目录，常用表情正在缓存…';
       const preload=['[流泪]','[哭哭]','[泣不成声]','[可怜]','[感谢]','[心碎]','[抱抱你]','[爱心]','[眼含热泪]','[难过]','[大哭]','[快哭了]','[戳手手]','[玫瑰]'];
-      await Promise.allSettled(preload.map(token=>ensureDouyinStickerLoaded(token)));
-      const finalStatus=$('#douyinEmojiStatus');if(finalStatus)finalStatus.textContent='已接入 '+douyinStickerCatalog.length+' 款抖音表情（默认可见 '+douyinStickerCatalog.filter(x=>!x.hide).length+' 款），常用表情已缓存到本机';
+      const preloadResults=await Promise.allSettled(preload.map(token=>ensureDouyinStickerLoaded(token)));
+      const cachedCount=preloadResults.filter(result=>result.status==='fulfilled'&&!!result.value).length;
+      const finalStatus=$('#douyinEmojiStatus');if(finalStatus)finalStatus.textContent='已接入 '+douyinStickerCatalog.length+' 款抖音表情（默认可见 '+douyinStickerCatalog.filter(x=>!x.hide).length+' 款），常用表情缓存 '+cachedCount+'/'+preload.length;
       return douyinStickerCatalog.length;
     }catch(err){lastError=err}
   }
